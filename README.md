@@ -13,3 +13,5 @@ Need Python 2.7
 `pip install matplotlib`
 
 `pip install numpy`
+
+days since broken dish = 0
