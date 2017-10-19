@@ -15,8 +15,12 @@ class MainGUI(QtGui.QMainWindow):
         self.damping = 0
 
     def _initUI(self):
+        """Initializes GUI elements, probably should put certain sections into
+        their own methods later to organize it better."""
         grid = QtGui.QGridLayout()
         hbox = QtGui.QHBoxLayout()
+
+        # Spring editing section #
         groupbox = QtGui.QGroupBox()
         self.parallelCheck = QtGui.QRadioButton('Parallel', parent=self)
         self.parallelCheck.setChecked(True)
@@ -47,6 +51,8 @@ class MainGUI(QtGui.QMainWindow):
         vbox.addWidget(self.curSpringsLabel)
         hbox.addLayout(vbox)
         grid.addLayout(hbox, 0, 0)
+
+        # Other paramaters section (mass, damping, etc...) #
         hbox = QtGui.QHBoxLayout()
         labelMass = QtGui.QLabel('Mass: ', parent=self)
         self.massEdit = QtGui.QLineEdit()
@@ -84,14 +90,19 @@ class MainGUI(QtGui.QMainWindow):
         hbox.addWidget(label)
         hbox.addWidget(self.speedPercentEdit)
         grid.addLayout(hbox, 4, 0)
+
+        # Plot section #
         self.fig = Figure(figsize=(600,600), dpi=72, facecolor=(1,1,1), edgecolor=(0,0,0))
         ax = self.fig.add_subplot(111)
         ax.plot([0,0])
         ax.set_title("Position vs. Time (nothing entered)")
         ax.set_xlabel("Time (s)")
         ax.set_ylabel("Position (m)")
+        # the canvas is the actual thing you add to the GUI
         self.canvas = FigureCanvas(self.fig)
         grid.addWidget(self.canvas, 5, 0)
+
+        # Main controls #
         hbox = QtGui.QHBoxLayout()
         button = QtGui.QPushButton('Plot', parent=self)
         button.clicked.connect(self.plotData)
@@ -106,6 +117,11 @@ class MainGUI(QtGui.QMainWindow):
         self.show()
 
     def addSprings(self):
+        """Based on text in the spring stiffness box, and also whether the
+        parallel/series dot is filled, adds the spring stiffness(es) to the
+        list (SP means spring parallel, SS means spring series. SS is always
+        followed by the number of springs on that series, then the values of
+        the stiffnesses themselves)"""
         text = self.springsEdit.text().split()
         l = len(text)
         tempText = 'Current Springs: '
@@ -121,12 +137,15 @@ class MainGUI(QtGui.QMainWindow):
         self.curSpringsLabel.setText(tempText)
 
     def showForcingHelp(self):
-            box = QtGui.QMessageBox(parent=self)
-            box.setText("help")
+        """Nothing helpful right now"""
+        box = QtGui.QMessageBox(parent=self)
+        box.setText("help")
 
-            box.exec_()
+        box.exec_()
 
     def deleteLastSpring(self):
+        """Deletes the last spring entered. If it's a series spring, deletes
+        all springs on that series."""
         if len(self.springArgs) == 0:
             box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'There are '\
                               'no springs to delete.', parent=self)
@@ -144,6 +163,7 @@ class MainGUI(QtGui.QMainWindow):
         self.curSpringsLabel.setText(tempText)
 
     def deleteAllSprings(self):
+        """Deletes all springs"""
         if len(self.springArgs) == 0:
             box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'There are '\
                               'no springs to delete.', parent=self)
@@ -153,6 +173,9 @@ class MainGUI(QtGui.QMainWindow):
         self.curSpringsLabel.setText('Current Springs: ')
 
     def launchSimulator(self):
+        """Launches the pygame simulator via command line. Sends the springArgs
+        (which indicate parallel or series), mass, damping, initial position,
+        and speed of simulation to be processed in the spring.py file."""
         if len(self.springArgs) == 0:
             box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'You must '\
                               'enter at least one spring stiffness.', parent=self)
@@ -182,7 +205,8 @@ class MainGUI(QtGui.QMainWindow):
         huge array of position/time data to a pygame window has not been
         found (or from the pygame window to the GUI). This is fine for now
         since the math takes less than half a second to complete...but it's
-        a little messy. """
+        a little messy.
+        Watch this to understand Euler's method: https://www.youtube.com/watch?v=k2V2UYr6lYw"""
         y_t = [] # temp y
         y_t.append(float(self.initPosEdit.text())) # Needs ot be user entered
         t_t = [] # temp t
@@ -206,6 +230,8 @@ class MainGUI(QtGui.QMainWindow):
         self.canvas.draw()
 
     def getStiffness(self):
+        """Gets the stiffness of all the springs in springArgs to be used
+        in the plot function."""
         stiffness = 0
         for i in range(len(self.springArgs)):
             if self.springArgs[i][0:2] == 'SP':

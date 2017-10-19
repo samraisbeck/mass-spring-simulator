@@ -2,8 +2,6 @@ import math
 import pygame
 import sys, os
 import numpy as np
-import matplotlib.pyplot as plt
-from random import randint
 WIDTH = 1000
 HEIGHT = 600
 pygame.init()
@@ -33,10 +31,12 @@ class MassSpring(object):
         self.springs = springs
         self.k = 0
         self.getStiffness()
+        print self.k
         self.block = pygame.image.load('block.png').convert_alpha()
         self.blockW, self.blockH = 40, 80
         self.block = pygame.transform.scale(self.block, (self.blockW, self.blockH))
-        self.blockEq = (WIDTH/2) - self.blockW/2
+        self.blockEq = (WIDTH/2) - self.blockW/2 # Block's resting point (middle)
+        # Note that in pygame, (0,0) for an item is top left corner
         self.blockX = self.blockEq
         self.blockY = (HEIGHT/2) - self.blockH/2
         self.m = mass
@@ -51,6 +51,8 @@ class MassSpring(object):
         self.inc = 0.0001
 
     def getStiffness(self):
+        """Self explanatory. Series springs are stored in lists, hence the
+        type-check."""
         for spring in self.springs:
             if type(spring) == list:
                 # This is the case of springs in series
@@ -67,7 +69,8 @@ class MassSpring(object):
         huge array of position/time data to a pygame window has not been
         found (or from the pygame window to the GUI). This is fine for now
         since the math takes less than half a second to complete...but it's
-        a little messy. """
+        a little messy.
+        Watch this to understand Euler's method: https://www.youtube.com/watch?v=k2V2UYr6lYw"""
         sampleRate = iterations/1000 # only sample 1000 points.
         self.y = np.array([0])
         y_t = [] # temp y
@@ -99,30 +102,48 @@ class MassSpring(object):
         # plt.show()
 
     def update(self, frame):
-        self.clock.tick(self.fps)
+        """Here's what draws everything"""
+        self.clock.tick(self.fps) # Set FPS
         self.window.fill((255,255,255))
         events = pygame.event.get()
         for event in events:
             if event.type == pygame.QUIT:
+                # this is hitting the exit button
                 pygame.quit()
                 sys.exit(0)
         if self.t[frame]//1 != self.printTime:
+            # We floor the time at this frame to just get the integer part.
+            # Then, we check to see if that equals the one on the screen. If it
+            # does not, we render a new one (one second has elapsed). We don't use
+            # system time to make sure computer lag does not cause the mass
+            # simulation to be off sync with the time.
             self.printTime = self.t[frame]//1
             font = pygame.font.SysFont('arialblack', 40)
-            self.text = font.render('Time: '+str(int(self.printTime)), 1, (255,0,0))
-        self.window.blit(self.text, (100,100))
-        pygame.draw.line(self.window, (255,0,0), (WIDTH/2, self.blockY-20), (WIDTH/2, self.blockY+self.blockH+20))
+            self.timeText = font.render('Time: '+str(int(self.printTime)), 1, (255,0,0))
+        self.window.blit(self.timeText, (100,100))
         for i in range(5):
+            # Draw the measurement lines (lines are spaced out 1 meter)
             pygame.draw.line(self.window, (0,255,0), ((WIDTH/2)+(100*i), self.blockY-20), ((WIDTH/2)+(100*i), self.blockY+self.blockH+20))
             pygame.draw.line(self.window, (0,255,0), ((WIDTH/2)-(100*i), self.blockY-20), ((WIDTH/2)-(100*i), self.blockY+self.blockH+20))
         # print round(self.y[frame]*100)
+        pygame.draw.line(self.window, (255,0,0), (WIDTH/2, self.blockY-20), (WIDTH/2, self.blockY+self.blockH+20)) # Equilibrium line
+        # Multiply blockX by 100 so that an easy map to pixels can be made
+        # i.e 1 meter = 100 pixels, 2.13 meters is 213 pixels, etc
         self.blockX = self.blockEq+round(self.y[frame]*100)
         for i in range(len(self.springs)):
+            # Draw the springs. If it's a series spring, divide the distance
+            # by the number of springs and change the color every division
+            # so you can see there are multiple springs.
             if type(self.springs[i]) == list:
-                div = (self.blockX+self.blockW/2 - WIDTH/2)/len(self.springs[i])
+                Sum = sum([1/k for k in self.springs[i]])
+                dist = (self.blockX+self.blockW/2 - WIDTH/2)
+                startPos = WIDTH/2
                 for j in range(len(self.springs[i])):
-                    pygame.draw.line(self.window, (abs(math.cos(j*(math.pi/2)))*255,0,150), (WIDTH/2 + j*div, ((-1)**i*(i*10))+HEIGHT/2), (WIDTH/2 + (j+1)*div, ((-1)**i*(i*10))+HEIGHT/2), 5)
-
+                    perc = (1/self.springs[i][j])/Sum
+                    print startPos, startPos + perc*dist,
+                    print
+                    pygame.draw.line(self.window, (abs(math.cos(j*(math.pi/2)))*255,0,150), (startPos, ((-1)**i*(i*10))+HEIGHT/2), (startPos + perc*dist, ((-1)**i*(i*10))+HEIGHT/2), 5)
+                    startPos += perc*dist
             else:
                 pygame.draw.line(self.window, (255,0,150), (WIDTH/2, ((-1)**i*(i*10))+HEIGHT/2), (self.blockX+self.blockW/2, ((-1)**i*(i*10))+HEIGHT/2), 5)
         # self.block.x = self.blockEq + round(self.y[frame]*100)
@@ -132,6 +153,15 @@ class MassSpring(object):
 
 
 if __name__ == '__main__':
+    """
+    Here, we are initializing the simulator. Remember, this file is called from
+    the GUI with the proper parameters as the arguments in the command line.
+    So here, we are reading in the arguments and adding them to the proper
+    variables so we can pass them onto the simulator object.
+    totalSprings is just the addition of seriesSprings and parallelSprings.
+    It is a list of stiffnesses for each spring, and if the spring is a series
+    spring, it shows up in totalSprings as a list of stiffnesses.
+    """
     seriesSprings = []
     parallelSprings = []
     totalSprings = []
