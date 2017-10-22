@@ -140,8 +140,6 @@ class MassSpring(object):
                 startPos = WIDTH/2
                 for j in range(len(self.springs[i])):
                     perc = (1/self.springs[i][j])/Sum
-                    print startPos, startPos + perc*dist,
-                    print
                     pygame.draw.line(self.window, (abs(math.cos(j*(math.pi/2)))*255,0,150), (startPos, ((-1)**i*(i*10))+HEIGHT/2), (startPos + perc*dist, ((-1)**i*(i*10))+HEIGHT/2), 5)
                     startPos += perc*dist
             else:
@@ -174,7 +172,7 @@ if __name__ == '__main__':
             pass
         elif sys.argv[i][0:2] == 'SS':
             springs = []
-            num = int(sys.argv[i][2])
+            num = int(sys.argv[i][2:])
             for j in range(num):
                 springs.append(float(sys.argv[i+1+j]))
             seriesSprings.append(springs)
