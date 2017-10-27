@@ -255,20 +255,22 @@ class MainGUI(QtGui.QMainWindow):
         t_t.append(0)
         z = []
         z.append(0) # z = dy/dx for Euler method
-        b = int(self.dampingEdit.text())
-        m = int(self.massEdit.text())
+        # gotta be floats for the math
+        b = float(self.dampingEdit.text())
+        m = float(self.massEdit.text())
         k = self.getStiffness()
         fNum = 0
         if self.resonanceCheck.isChecked() or self.antiResonanceCheck.isChecked():
             # Force values if special case is selected
-            b = 0
-            m = 2
-            k = 8
+            b = 0.0
+            m = 2.0
+            k = 8.0
             y_t[0] = -3
             fNum = 1
         if self.antiResonanceCheck.isChecked():
             y_t[0] = 3
         inc = 0.0001
+        print b
         for i in range(1, 100000):
             t_t.append(t_t[i-1]+inc)
             y_t.append(y_t[i-1] + z[i-1]*inc)
