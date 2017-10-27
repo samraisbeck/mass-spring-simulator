@@ -2,7 +2,7 @@ import math
 import pygame
 import sys, os
 import numpy as np
-WIDTH = 1000
+WIDTH = 1300
 HEIGHT = 600
 pygame.init()
 
@@ -23,7 +23,7 @@ TODO:
 """
 
 class MassSpring(object):
-    def __init__(self, springs, damping, mass, initPos, speedPercent):
+    def __init__(self, springs, damping, mass, initPos, speedPercent, fNum):
         self.window = pygame.display.set_mode((WIDTH, HEIGHT))
         self.window.fill((255,255,255))
         self.clock = pygame.time.Clock()
@@ -49,6 +49,7 @@ class MassSpring(object):
         self.dy0 = 0 # Initial velocity will always be 0
         self.t0 = 0
         self.inc = 0.0001
+        self.funcNum = fNum
 
     def getStiffness(self):
         """Self explanatory. Series springs are stored in lists, hence the
@@ -62,6 +63,14 @@ class MassSpring(object):
                 self.k += spring
         self.k = round(self.k, 3)
 
+    def getForcingVal(self, time, fNum):
+        """ Eventually, when we have a variety of forcing functions in the drop-down,
+            we can just go by their index number and then return the appropriate
+            function value here (fNum will indicate which function we need)."""
+        if fNum == 0:
+            return 0
+        elif fNum == 1:
+            return math.sin(2*time)
 
     def euler(self, iterations = 100000):
         """Unfortunately, right now we need to calculate the approximation when
@@ -85,7 +94,7 @@ class MassSpring(object):
         for i in range(1, iterations):
             t_t.append(t_t[i-1]+self.inc)
             y_t.append(y_t[i-1] + z[i-1]*self.inc)
-            z.append(z[i-1] + ((-self.b/self.m)*z[i-1] - (self.k/self.m)*y_t[i-1])*self.inc)
+            z.append(z[i-1] + (self.getForcingVal(t_t[i-1], self.funcNum)-(self.b/self.m)*z[i-1] - (self.k/self.m)*y_t[i-1])*self.inc)
             if i%sampleRate == 0:
                 # sample every 100th point
                 self.t = np.append(self.t, t_t[i])
@@ -166,7 +175,6 @@ if __name__ == '__main__':
     damping = 0
     mass = 0
 
-
     for i in range(len(sys.argv)):
         if i == 0:
             pass
@@ -188,10 +196,12 @@ if __name__ == '__main__':
             pos0 = float(sys.argv[i][2:])
         elif sys.argv[i][0:2] == 'PS':
             percSpeed = float(sys.argv[i][2:])/100
+        elif sys.argv[i][0:2] == 'FN':
+            fNum = int(sys.argv[i][2:])
     totalSprings = parallelSprings+seriesSprings
-    MassSpringSim = MassSpring(totalSprings, damping, mass, pos0, percSpeed)
+    MassSpringSim = MassSpring(totalSprings, damping, mass, pos0, percSpeed, fNum)
     MassSpringSim.euler()
-    MassSpringSim.analytical()
+    #MassSpringSim.analytical()
     for i in range(len(MassSpringSim.t)):
         MassSpringSim.update(i)
     pygame.quit()

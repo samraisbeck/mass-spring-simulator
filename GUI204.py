@@ -1,3 +1,4 @@
+
 from PySide import QtGui, QtCore
 import sys, os
 from subprocess import Popen
@@ -5,6 +6,7 @@ import matplotlib
 matplotlib.use('Qt4Agg')
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
+import math
 
 class MainGUI(QtGui.QMainWindow):
     def __init__(self):
@@ -69,12 +71,23 @@ class MainGUI(QtGui.QMainWindow):
         grid.addLayout(hbox, 2, 0)
         hbox = QtGui.QHBoxLayout()
         labelForcing = QtGui.QLabel('Forcing Function: ', parent=self)
-        self.forcingEdit = QtGui.QLineEdit()
-        self.forcingEdit.setText('0')
-        hbox.addWidget(labelForcing)
-        hbox.addWidget(self.forcingEdit)
-        button = QtGui.QPushButton('Format Help', parent=self)
-        button.clicked.connect(self.showForcingHelp)
+        self.forcingDropDown = QtGui.QComboBox()
+        hbox.addWidget(labelForcing, 0, QtCore.Qt.AlignRight)
+        hbox.addWidget(self.forcingDropDown)
+        groupbox = QtGui.QGroupBox()
+        innerHBox = QtGui.QHBoxLayout()
+        self.doParams = QtGui.QRadioButton('Show Current Parameters', parent=self)
+        self.doParams.setChecked(True)
+        self.resonanceCheck = QtGui.QRadioButton('Show Resonance', parent=self)
+        self.antiResonanceCheck = QtGui.QRadioButton('Show Anti-Resonance', parent=self)
+        innerHBox.addWidget(self.doParams)
+        innerHBox.addWidget(self.resonanceCheck)
+        innerHBox.addWidget(self.antiResonanceCheck)
+        groupbox.setLayout(innerHBox)
+        groupbox.setContentsMargins(0,0,0,0)
+        hbox.addWidget(groupbox)
+        button = QtGui.QPushButton("What's this doing?", parent=self)
+        button.clicked.connect(self.resonanceHelp)
         hbox.addWidget(button)
         grid.addLayout(hbox, 3, 0)
         hbox = QtGui.QHBoxLayout()
@@ -136,10 +149,19 @@ class MainGUI(QtGui.QMainWindow):
             tempText += spring+' '
         self.curSpringsLabel.setText(tempText)
 
-    def showForcingHelp(self):
+    def resonanceHelp(self):
         """Nothing helpful right now"""
         box = QtGui.QMessageBox(parent=self)
-        box.setText("help")
+        box.setText("If 'Show Current Parameters' is checked, the program will "+\
+                     "plot the position with the parameters you have entered. If "+\
+                     "'Show Resonance' is checked, the position will be plotted for "+\
+                     "a mass of 2 and a stiffness of 8. In this case, the homogeneous "+\
+                     "component of the solution has the same frequency as the forcing "+\
+                     "function, so the oscillations are forced to grow. If 'Show Anti-'"+\
+                     "Resonance' is selected, the same thing happens as with resonance, "+\
+                     "but the mass starts at the opposite side. Therefore, the frequencies "+\
+                     "are opposite each other, and oscillations decrease even though there "+\
+                     "is no damping force.")
 
         box.exec_()
 
@@ -176,19 +198,19 @@ class MainGUI(QtGui.QMainWindow):
         """Launches the pygame simulator via command line. Sends the springArgs
         (which indicate parallel or series), mass, damping, initial position,
         and speed of simulation to be processed in the spring.py file."""
-        if len(self.springArgs) == 0:
+        if len(self.springArgs) == 0 and self.doParams.isChecked():
             box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'You must '\
                               'enter at least one spring stiffness.', parent=self)
             box.exec_()
             return
-        elif float(self.initPosEdit.text()) < 0 or float(self.initPosEdit.text()) > 5:
+        elif abs(float(self.initPosEdit.text())) > 5 and self.doParams.isChecked():
             box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Initial position must '\
-                              'be in the range of 0-5 meters.', parent=self)
+                              'be in the range of -5 to 5 meters.', parent=self)
             box.exec_()
             return
-        elif float(self.speedPercentEdit.text()) <= 0 or float(self.speedPercentEdit.text()) > 100:
+        elif float(self.speedPercentEdit.text()) <= 0 or float(self.speedPercentEdit.text()) > 150:
             box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Speed percentage '\
-                              'must be greater than 0% and less or equal to 100%', parent=self)
+                              'must be greater than 0% and less or equal to 150%', parent=self)
             box.exec_()
             return
         directory = os.path.dirname(os.path.realpath(__file__))
@@ -196,8 +218,28 @@ class MainGUI(QtGui.QMainWindow):
         dampingArg = 'D'+self.dampingEdit.text()
         initPosArg = 'IP'+self.initPosEdit.text()
         speedArg = 'PS'+self.speedPercentEdit.text()
-        args = [sys.executable, directory+'\\spring.py']+self.springArgs+[massArg, dampingArg, initPosArg, speedArg]
+        funcNumArg = 'FN0'
+        if self.resonanceCheck.isChecked() or self.antiResonanceCheck.isChecked():
+            # Basically force predetermined values if a special case is selected
+            massArg = 'M2'
+            dampingArg = 'D0'
+            self.springArgs = ['SP8']
+            funcNumArg = 'FN1'
+            initPosArg = 'IP-3'
+        if self.antiResonanceCheck.isChecked():
+            initPosArg = 'IP3'
+        args = [sys.executable, directory+'\\spring.py']+self.springArgs+[massArg, \
+                dampingArg, initPosArg, speedArg, funcNumArg]
         Popen(args, cwd = directory)
+
+    def getForcingVal(self, time, funcNum):
+        """ Eventually, when we have a variety of forcing functions in the drop-down,
+            we can just go by their index number and then return the appropriate
+            function value here (fNum will indicate which function we need)."""
+        if funcNum == 0:
+            return 0
+        elif funcNum == 1:
+            return math.sin(2*time)
 
     def plotData(self):
         """Unfortunately, right now we need to calculate the approximation when
@@ -208,7 +250,7 @@ class MainGUI(QtGui.QMainWindow):
         a little messy.
         Watch this to understand Euler's method: https://www.youtube.com/watch?v=k2V2UYr6lYw"""
         y_t = [] # temp y
-        y_t.append(float(self.initPosEdit.text())) # Needs ot be user entered
+        y_t.append(float(self.initPosEdit.text()))
         t_t = [] # temp t
         t_t.append(0)
         z = []
@@ -216,11 +258,21 @@ class MainGUI(QtGui.QMainWindow):
         b = int(self.dampingEdit.text())
         m = int(self.massEdit.text())
         k = self.getStiffness()
+        fNum = 0
+        if self.resonanceCheck.isChecked() or self.antiResonanceCheck.isChecked():
+            # Force values if special case is selected
+            b = 0
+            m = 2
+            k = 8
+            y_t[0] = -3
+            fNum = 1
+        if self.antiResonanceCheck.isChecked():
+            y_t[0] = 3
         inc = 0.0001
         for i in range(1, 100000):
             t_t.append(t_t[i-1]+inc)
             y_t.append(y_t[i-1] + z[i-1]*inc)
-            z.append(z[i-1] + ((-b/m)*z[i-1] - (k/m)*y_t[i-1])*inc)
+            z.append(z[i-1] + (self.getForcingVal(t_t[i-1], fNum)-(b/m)*z[i-1] - (k/m)*y_t[i-1])*inc)
         ax = self.fig.add_subplot(111)
         ax.clear()
         ax.plot(t_t, y_t)
