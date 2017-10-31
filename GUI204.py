@@ -140,14 +140,20 @@ class MainGUI(QtGui.QMainWindow):
         followed by the number of springs on that series, then the values of
         the stiffnesses themselves)"""
 
-        if self.springsEdit.text() == "" or float(self.springsEdit.text()) <= 0:
-            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'You must '\
-                              'enter a non-zero value for spring stiffness.', parent=self)
-            box.exec_()
-            return
+        # if self.springsEdit.text() == "" or float(self.springsEdit.text()) <= 0:
+        #     box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'You must '\
+        #                       'enter a non-zero value for spring stiffness.', parent=self)
+        #     box.exec_()
+        #     return
+        #
+        # I feel like this check is better done in a loop below, because users
+        # can enter in multiple values for stiffness.
+        # Also we can then see if each element is in fact a number greater than
+        # 0 and not like a word or letter or something.
 
         text = self.springsEdit.text().split()
         if len(text) == 0:
+            # someone didn't enter anything
             box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Must have at '\
                                     'least one stiffness value.', parent=self)
             box.exec_()
