@@ -73,6 +73,8 @@ class MainGUI(QtGui.QMainWindow):
         labelForcing = QtGui.QLabel('Forcing Function: ', parent=self)
         self.forcingDropDown = QtGui.QComboBox()
         hbox.addWidget(labelForcing, 0, QtCore.Qt.AlignRight)
+        self.forcingDropDown.addItem('None')
+        self.forcingDropDown.addItem('f(t) = 3')
         hbox.addWidget(self.forcingDropDown)
         groupbox = QtGui.QGroupBox()
         innerHBox = QtGui.QHBoxLayout()
@@ -80,6 +82,8 @@ class MainGUI(QtGui.QMainWindow):
         self.doParams.setChecked(True)
         self.resonanceCheck = QtGui.QRadioButton('Show Resonance', parent=self)
         self.antiResonanceCheck = QtGui.QRadioButton('Show Anti-Resonance', parent=self)
+        self.resonanceCheck.clicked.connect(self.resonanceForcing)
+        self.antiResonanceCheck.clicked.connect(self.resonanceForcing)
         innerHBox.addWidget(self.doParams)
         innerHBox.addWidget(self.resonanceCheck)
         innerHBox.addWidget(self.antiResonanceCheck)
@@ -136,6 +140,26 @@ class MainGUI(QtGui.QMainWindow):
         followed by the number of springs on that series, then the values of
         the stiffnesses themselves)"""
         text = self.springsEdit.text().split()
+        if len(text) == 0:
+            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Must have at '\
+                                    'least one stiffness value.', parent=self)
+            box.exec_()
+            return
+        for number in text:
+            try:
+                if float(number) <= 0:
+                    # someone entered 0 or a negative number
+                    box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Stiffnesses '\
+                                      'must be above 0.', parent=self)
+                    box.exec_()
+                    return
+            except:
+                # someone entered something that can't be converted to a float (like a letter)
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Something went '\
+                                  'wrong. Stiffnesses not entered. Should be in the format of '\
+                                  '"100 200 100" as an example.', parent=self)
+                box.exec_()
+                return
         l = len(text)
         tempText = 'Current Springs: '
         if self.parallelCheck.isChecked():
@@ -164,6 +188,10 @@ class MainGUI(QtGui.QMainWindow):
                      "is no damping force.")
 
         box.exec_()
+
+    def resonanceForcing(self):
+        self.forcingDropDown.setCurrentIndex(0)
+        self.forcingDropDown.setEnabled(False)
 
     def deleteLastSpring(self):
         """Deletes the last spring entered. If it's a series spring, deletes
@@ -289,9 +317,9 @@ class MainGUI(QtGui.QMainWindow):
         stiffness = 0
         for i in range(len(self.springArgs)):
             if self.springArgs[i][0:2] == 'SP':
-                stiffness += int(self.springArgs[i][2:])
+                stiffness += float(self.springArgs[i][2:])
             elif self.springArgs[i][0:2] == 'SS':
-                num = int(self.springArgs[i][2:])
+                num = float(self.springArgs[i][2:])
                 seriesK = 0
                 for j in range(num):
                     seriesK += 1.0/int(self.springArgs[i+1+j])
