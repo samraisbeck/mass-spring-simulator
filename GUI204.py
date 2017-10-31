@@ -135,6 +135,13 @@ class MainGUI(QtGui.QMainWindow):
         list (SP means spring parallel, SS means spring series. SS is always
         followed by the number of springs on that series, then the values of
         the stiffnesses themselves)"""
+
+        if self.springsEdit.text() == "" or float(self.springsEdit.text()) <= 0:
+            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'You must '\
+                              'enter a non-zero value for spring stiffness.', parent=self)
+            box.exec_()
+            return
+
         text = self.springsEdit.text().split()
         l = len(text)
         tempText = 'Current Springs: '
