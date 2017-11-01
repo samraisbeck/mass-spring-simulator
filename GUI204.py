@@ -74,12 +74,13 @@ class MainGUI(QtGui.QMainWindow):
         self.forcingDropDown = QtGui.QComboBox()
         hbox.addWidget(labelForcing, 0, QtCore.Qt.AlignRight)
         self.forcingDropDown.addItem('None')
-        self.forcingDropDown.addItem('f(t) = 3')
+        self.forcingDropDown.addItem('f(t) = 10')
         hbox.addWidget(self.forcingDropDown)
         groupbox = QtGui.QGroupBox()
         innerHBox = QtGui.QHBoxLayout()
         self.doParams = QtGui.QRadioButton('Show Current Parameters', parent=self)
         self.doParams.setChecked(True)
+        self.doParams.clicked.connect(self.reEnableForcingMenu)
         self.resonanceCheck = QtGui.QRadioButton('Show Resonance', parent=self)
         self.antiResonanceCheck = QtGui.QRadioButton('Show Anti-Resonance', parent=self)
         self.resonanceCheck.clicked.connect(self.resonanceForcing)
@@ -206,6 +207,9 @@ class MainGUI(QtGui.QMainWindow):
         self.forcingDropDown.setCurrentIndex(0)
         self.forcingDropDown.setEnabled(False)
 
+    def reEnableForcingMenu(self):
+        self.forcingDropDown.setEnabled(True)
+
     def deleteLastSpring(self):
         """Deletes the last spring entered. If it's a series spring, deletes
         all springs on that series."""
@@ -259,13 +263,13 @@ class MainGUI(QtGui.QMainWindow):
         dampingArg = 'D'+self.dampingEdit.text()
         initPosArg = 'IP'+self.initPosEdit.text()
         speedArg = 'PS'+self.speedPercentEdit.text()
-        funcNumArg = 'FN0'
+        funcNumArg = 'FN'+str(self.forcingDropDown.currentIndex()+1)
         if self.resonanceCheck.isChecked() or self.antiResonanceCheck.isChecked():
             # Basically force predetermined values if a special case is selected
             massArg = 'M2'
             dampingArg = 'D0'
             self.springArgs = ['SP8']
-            funcNumArg = 'FN1'
+            funcNumArg = 'FN0'
             initPosArg = 'IP-3'
         if self.antiResonanceCheck.isChecked():
             initPosArg = 'IP3'
@@ -278,9 +282,11 @@ class MainGUI(QtGui.QMainWindow):
             we can just go by their index number and then return the appropriate
             function value here (fNum will indicate which function we need)."""
         if funcNum == 0:
-            return 0
-        elif funcNum == 1:
             return math.sin(2*time)
+        elif funcNum == 1:
+            return 0
+        elif funcNum == 2:
+            return 10
 
     def plotData(self):
         """Unfortunately, right now we need to calculate the approximation when
@@ -300,18 +306,19 @@ class MainGUI(QtGui.QMainWindow):
         b = float(self.dampingEdit.text())
         m = float(self.massEdit.text())
         k = self.getStiffness()
-        fNum = 0
+        # + 1 here because fNum = 0 reserved for the resonance cases
+        fNum = self.forcingDropDown.currentIndex() + 1
         if self.resonanceCheck.isChecked() or self.antiResonanceCheck.isChecked():
             # Force values if special case is selected
             b = 0.0
             m = 2.0
             k = 8.0
             y_t[0] = -3
-            fNum = 1
+            fNum = 0
         if self.antiResonanceCheck.isChecked():
             y_t[0] = 3
+        print fNum
         inc = 0.0001
-        print b
         for i in range(1, 100000):
             t_t.append(t_t[i-1]+inc)
             y_t.append(y_t[i-1] + z[i-1]*inc)

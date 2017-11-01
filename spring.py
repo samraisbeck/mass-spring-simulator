@@ -68,9 +68,11 @@ class MassSpring(object):
             we can just go by their index number and then return the appropriate
             function value here (fNum will indicate which function we need)."""
         if fNum == 0:
-            return 0
-        elif fNum == 1:
             return math.sin(2*time)
+        elif fNum == 1:
+            return 0
+        elif fNum == 2:
+            return 10
 
     def euler(self, iterations = 100000):
         """Unfortunately, right now we need to calculate the approximation when
