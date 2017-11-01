@@ -6,21 +6,7 @@ WIDTH = 1300
 HEIGHT = 600
 pygame.init()
 
-"""
-TODO:
-- Is this the best way to go about this?
-    - any other possible ways to go?
-- Forcing function (probably drop-down choice)
-    - this will be easy to implement
-- Display useful data on screen
-    - like relaxation time, # oscillations, input parameters, etc...
-    - again, will be easy
-- Make everything look more professional
-    - more or less in the pygame window
-- Test with hand calculations
-    - Already did for one basic case but we need more
-- Is there anything else to make this better?
-"""
+
 
 class MassSpring(object):
     def __init__(self, springs, damping, mass, initPos, speedPercent, fNum):

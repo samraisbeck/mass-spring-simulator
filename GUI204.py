@@ -8,6 +8,20 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import math
 
+"""
+To do:
+- Forcing Functions
+- data printed on simulation window
+    - i.e mass, damping, stiffness, etc
+- make it all look better
+- spring on both sides (possibly?)
+- add hanging spring version
+    - this could maybe be just a checkbox the user can select, or a new tab
+    in the GUI
+    - if this is selected, then run the hanging mass calculation, if not,
+    run the calculation we have going right now.
+"""
+
 class MainGUI(QtGui.QMainWindow):
     def __init__(self):
         super(MainGUI, self).__init__()
