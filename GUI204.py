@@ -30,10 +30,29 @@ class MainGUI(QtGui.QMainWindow):
         self.mass = 0
         self.damping = 0
 
+### GUI SETUP STARTS HERE ####################
+
     def _initUI(self):
         """Initializes GUI elements, probably should put certain sections into
         their own methods later to organize it better."""
         grid = QtGui.QGridLayout()
+        grid.addLayout(self._UISprings(), 0, 0)
+        # Other paramaters section (mass, damping, etc...) #
+        grid.addLayout(self._UIMass(), 1, 0)
+        grid.addLayout(self._UIDamping(), 2, 0)
+        grid.addLayout(self._UIForcingOptions(), 3, 0)
+        grid.addLayout(self._UIInitPosAndSpeed(), 4, 0)
+        # Plot section #
+        self.canvas = self._UISetupPlot()
+        grid.addWidget(self.canvas, 5, 0)
+        # Main controls #
+        grid.addLayout(self._UIMainControls(), 6, 0)
+        Qw = QtGui.QWidget()
+        Qw.setLayout(grid)
+        self.setCentralWidget(Qw)
+        self.show()
+
+    def _UISprings(self):
         hbox = QtGui.QHBoxLayout()
 
         # Spring editing section #
@@ -66,23 +85,27 @@ class MainGUI(QtGui.QMainWindow):
         self.curSpringsLabel = QtGui.QLabel('Current Springs: ', parent=self)
         vbox.addWidget(self.curSpringsLabel)
         hbox.addLayout(vbox)
-        grid.addLayout(hbox, 0, 0)
+        return hbox
 
-        # Other paramaters section (mass, damping, etc...) #
+    def _UIMass(self):
         hbox = QtGui.QHBoxLayout()
         labelMass = QtGui.QLabel('Mass: ', parent=self)
         self.massEdit = QtGui.QLineEdit()
         self.massEdit.setText('1')
         hbox.addWidget(labelMass)
         hbox.addWidget(self.massEdit)
-        grid.addLayout(hbox, 1, 0)
+        return hbox
+
+    def _UIDamping(self):
         hbox = QtGui.QHBoxLayout()
         labelDamping = QtGui.QLabel('Damping: ', parent=self)
         self.dampingEdit = QtGui.QLineEdit()
         self.dampingEdit.setText('0')
         hbox.addWidget(labelDamping)
         hbox.addWidget(self.dampingEdit)
-        grid.addLayout(hbox, 2, 0)
+        return hbox
+
+    def _UIForcingOptions(self):
         hbox = QtGui.QHBoxLayout()
         labelForcing = QtGui.QLabel('Forcing Function: ', parent=self)
         self.forcingDropDown = QtGui.QComboBox()
@@ -108,9 +131,11 @@ class MainGUI(QtGui.QMainWindow):
         button = QtGui.QPushButton("What's this doing?", parent=self)
         button.clicked.connect(self.resonanceHelp)
         hbox.addWidget(button)
-        grid.addLayout(hbox, 3, 0)
+        return hbox
+
+    def _UIInitPosAndSpeed(self):
         hbox = QtGui.QHBoxLayout()
-        label = QtGui.QLabel('Initial Position (0 to 5 meters): ', parent=self)
+        label = QtGui.QLabel('Initial Position (-5 to 5 meters): ', parent=self)
         self.initPosEdit = QtGui.QLineEdit()
         self.initPosEdit.setText('2')
         hbox.addWidget(label)
@@ -121,9 +146,9 @@ class MainGUI(QtGui.QMainWindow):
         self.speedPercentEdit.setToolTip('100 is full speed, 50 is half speed, etc...')
         hbox.addWidget(label)
         hbox.addWidget(self.speedPercentEdit)
-        grid.addLayout(hbox, 4, 0)
+        return hbox
 
-        # Plot section #
+    def _UISetupPlot(self):
         self.fig = Figure(figsize=(600,600), dpi=72, facecolor=(1,1,1), edgecolor=(0,0,0))
         ax = self.fig.add_subplot(111)
         ax.plot([0,0])
@@ -131,10 +156,9 @@ class MainGUI(QtGui.QMainWindow):
         ax.set_xlabel("Time (s)")
         ax.set_ylabel("Position (m)")
         # the canvas is the actual thing you add to the GUI
-        self.canvas = FigureCanvas(self.fig)
-        grid.addWidget(self.canvas, 5, 0)
+        return FigureCanvas(self.fig)
 
-        # Main controls #
+    def _UIMainControls(self):
         hbox = QtGui.QHBoxLayout()
         button = QtGui.QPushButton('Plot', parent=self)
         button.clicked.connect(self.plotData)
@@ -142,11 +166,9 @@ class MainGUI(QtGui.QMainWindow):
         button = QtGui.QPushButton('Launch Simulator', parent=self)
         button.clicked.connect(self.launchSimulator)
         hbox.addWidget(button)
-        grid.addLayout(hbox, 6, 0)
-        Qw = QtGui.QWidget()
-        Qw.setLayout(grid)
-        self.setCentralWidget(Qw)
-        self.show()
+        return hbox
+
+### GUI SETUP ENDS HERE #############################
 
     def addSprings(self):
         """Based on text in the spring stiffness box, and also whether the
