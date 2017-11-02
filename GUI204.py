@@ -109,7 +109,7 @@ class MainGUI(QtGui.QMainWindow):
         hbox = QtGui.QHBoxLayout()
         labelForcing = QtGui.QLabel('Forcing Function: ', parent=self)
         self.forcingDropDown = QtGui.QComboBox()
-        
+
         hbox.addWidget(labelForcing, 0, QtCore.Qt.AlignRight)
         self.forcingDropDown.addItem('None')
         self.forcingDropDown.addItem('f(t) = 10')
@@ -118,7 +118,7 @@ class MainGUI(QtGui.QMainWindow):
         self.forcingDropDown.addItem('f(t) = sin(t)')
         self.forcingDropDown.addItem('f(t) = e^-t')
         hbox.addWidget(self.forcingDropDown)
-        
+
         groupbox = QtGui.QGroupBox()
         innerHBox = QtGui.QHBoxLayout()
         self.doParams = QtGui.QRadioButton('Show Current Parameters', parent=self)
@@ -337,7 +337,7 @@ class MainGUI(QtGui.QMainWindow):
             return math.sin(time)
         elif funcNum == 6:
             return math.exp(-1*time)
-        
+
 
 
     def plotData(self):
@@ -369,12 +369,11 @@ class MainGUI(QtGui.QMainWindow):
             fNum = 0
         if self.antiResonanceCheck.isChecked():
             y_t[0] = 3
-        print fNum
         inc = 0.0001
         for i in range(1, 100000):
             t_t.append(t_t[i-1]+inc)
             y_t.append(y_t[i-1] + z[i-1]*inc)
-            z.append(z[i-1] + (self.getForcingVal(t_t[i-1], fNum)-(b/m)*z[i-1] - (k/m)*y_t[i-1])*inc)
+            z.append(z[i-1] + (self.getForcingVal(t_t[i-1], fNum)/m - (b/m)*z[i-1] - (k/m)*y_t[i-1])*inc)
         ax = self.fig.add_subplot(111)
         ax.clear()
         ax.plot(t_t, y_t)
@@ -394,7 +393,7 @@ class MainGUI(QtGui.QMainWindow):
                 num = float(self.springArgs[i][2:])
                 seriesK = 0
                 for j in range(num):
-                    seriesK += 1.0/int(self.springArgs[i+1+j])
+                    seriesK += 1.0/float(self.springArgs[i+1+j])
                 stiffness += 1.0/seriesK
         return stiffness
 

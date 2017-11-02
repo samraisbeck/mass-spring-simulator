@@ -90,7 +90,7 @@ class MassSpring(object):
         for i in range(1, iterations):
             t_t.append(t_t[i-1]+self.inc)
             y_t.append(y_t[i-1] + z[i-1]*self.inc)
-            z.append(z[i-1] + (self.getForcingVal(t_t[i-1], self.funcNum)-(self.b/self.m)*z[i-1] - (self.k/self.m)*y_t[i-1])*self.inc)
+            z.append(z[i-1] + (self.getForcingVal(t_t[i-1], self.funcNum)/self.m - (self.b/self.m)*z[i-1] - (self.k/self.m)*y_t[i-1])*self.inc)
             if i%sampleRate == 0:
                 # sample every 100th point
                 self.t = np.append(self.t, t_t[i])
