@@ -59,6 +59,14 @@ class MassSpring(object):
             return 0
         elif fNum == 2:
             return 10
+        elif fNum == 3:
+            return time
+        elif fNum == 4:
+            return time**2
+        elif fNum == 5:
+            return math.sin(time)
+        elif fNum == 6:
+            return math.exp(-1*time)
 
     def euler(self, iterations = 100000):
         """Unfortunately, right now we need to calculate the approximation when

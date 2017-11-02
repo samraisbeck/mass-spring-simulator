@@ -109,10 +109,16 @@ class MainGUI(QtGui.QMainWindow):
         hbox = QtGui.QHBoxLayout()
         labelForcing = QtGui.QLabel('Forcing Function: ', parent=self)
         self.forcingDropDown = QtGui.QComboBox()
+        
         hbox.addWidget(labelForcing, 0, QtCore.Qt.AlignRight)
         self.forcingDropDown.addItem('None')
         self.forcingDropDown.addItem('f(t) = 10')
+        self.forcingDropDown.addItem('f(t) = t')
+        self.forcingDropDown.addItem('f(t) = t^2')
+        self.forcingDropDown.addItem('f(t) = sin(t)')
+        self.forcingDropDown.addItem('f(t) = e^-t')
         hbox.addWidget(self.forcingDropDown)
+        
         groupbox = QtGui.QGroupBox()
         innerHBox = QtGui.QHBoxLayout()
         self.doParams = QtGui.QRadioButton('Show Current Parameters', parent=self)
@@ -323,6 +329,16 @@ class MainGUI(QtGui.QMainWindow):
             return 0
         elif funcNum == 2:
             return 10
+        elif funcNum == 3:
+            return time
+        elif funcNum == 4:
+            return time**2
+        elif funcNum == 5:
+            return math.sin(time)
+        elif funcNum == 6:
+            return math.exp(-1*time)
+        
+
 
     def plotData(self):
         """Unfortunately, right now we need to calculate the approximation when
