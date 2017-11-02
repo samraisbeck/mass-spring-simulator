@@ -106,6 +106,12 @@ class MassSpring(object):
         # plt.plot(self.t, self.y) show the plots
         # plt.show()
 
+    def renderText(self, text, size, color = (0,0,0), fontStr = 'arialblack'):
+        """Takes in text, font size, color (RGB tuple), font name (string) and
+           returns a font object which can be blit onto a window."""
+        font = pygame.font.SysFont(fontStr, size)
+        return font.render(text, 1, color)
+
     def update(self, frame):
         """Here's what draws everything"""
         self.clock.tick(self.fps) # Set FPS
@@ -123,8 +129,7 @@ class MassSpring(object):
             # system time to make sure computer lag does not cause the mass
             # simulation to be off sync with the time.
             self.printTime = self.t[frame]//1
-            font = pygame.font.SysFont('arialblack', 40)
-            self.timeText = font.render('Time: '+str(int(self.printTime)), 1, (255,0,0))
+            self.timeText = self.renderText('Time: '+str(int(self.printTime)), 40, (255,0,0))
         self.window.blit(self.timeText, (100,100))
         for i in range(5):
             # Draw the measurement lines (lines are spaced out 1 meter)
