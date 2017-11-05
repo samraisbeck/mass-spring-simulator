@@ -146,7 +146,7 @@ class MainGUI(QtGui.QMainWindow):
         self.initPosEdit.setText('2')
         hbox.addWidget(label)
         hbox.addWidget(self.initPosEdit)
-        label = QtGui.QLabel('Speed of Simulation (%): ', parent=self)
+        label = QtGui.QLabel('Speed of Simulation (1 to 150%): ', parent=self)
         self.speedPercentEdit = QtGui.QLineEdit()
         self.speedPercentEdit.setText('100')
         self.speedPercentEdit.setToolTip('100 is full speed, 50 is half speed, etc...')

@@ -35,6 +35,8 @@ class MassSpring(object):
         self.dy0 = 0 # Initial velocity will always be 0
         self.t0 = 0
         self.inc = 0.0001
+        self.maxInitPos = 5
+        self.distanceTexts = []
         self.funcNum = fNum
 
     def getStiffness(self):
@@ -112,6 +114,12 @@ class MassSpring(object):
         font = pygame.font.SysFont(fontStr, size)
         return font.render(text, 1, color)
 
+    def renderDistanceTexts(self):
+        for i in range(1,self.maxInitPos+1):
+            self.distanceTexts.append(self.renderText(str(i), 15))
+            self.distanceTexts.append(self.renderText(str(-i), 15))
+        self.distanceTexts.append(self.renderText('0', 15))
+
     def update(self, frame):
         """Here's what draws everything"""
         self.clock.tick(self.fps) # Set FPS
@@ -131,12 +139,16 @@ class MassSpring(object):
             self.printTime = self.t[frame]//1
             self.timeText = self.renderText('Time: '+str(int(self.printTime)), 40, (255,0,0))
         self.window.blit(self.timeText, (100,100))
-        for i in range(5):
+        for i in range(1, self.maxInitPos+1):
             # Draw the measurement lines (lines are spaced out 1 meter)
             pygame.draw.line(self.window, (0,255,0), ((WIDTH/2)+(100*i), self.blockY-20), ((WIDTH/2)+(100*i), self.blockY+self.blockH+20))
+            print i-1+i-1
+            self.window.blit(self.distanceTexts[2*(i-1)], ((WIDTH/2)+(100*i), self.blockY+self.blockH+20))
             pygame.draw.line(self.window, (0,255,0), ((WIDTH/2)-(100*i), self.blockY-20), ((WIDTH/2)-(100*i), self.blockY+self.blockH+20))
+            self.window.blit(self.distanceTexts[2*i-1], ((WIDTH/2)-(100*i), self.blockY+self.blockH+20))
         # print round(self.y[frame]*100)
         pygame.draw.line(self.window, (255,0,0), (WIDTH/2, self.blockY-20), (WIDTH/2, self.blockY+self.blockH+20)) # Equilibrium line
+        self.window.blit(self.distanceTexts[-1], (WIDTH/2, self.blockY+self.blockH+20))
         # Multiply blockX by 100 so that an easy map to pixels can be made
         # i.e 1 meter = 100 pixels, 2.13 meters is 213 pixels, etc
         self.blockX = self.blockEq+round(self.y[frame]*100)
@@ -202,6 +214,7 @@ if __name__ == '__main__':
     totalSprings = parallelSprings+seriesSprings
     MassSpringSim = MassSpring(totalSprings, damping, mass, pos0, percSpeed, fNum)
     MassSpringSim.euler()
+    MassSpringSim.renderDistanceTexts()
     #MassSpringSim.analytical()
     run = True
     while True:
