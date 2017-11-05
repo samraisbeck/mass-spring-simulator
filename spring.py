@@ -190,7 +190,33 @@ if __name__ == '__main__':
     MassSpringSim = MassSpring(totalSprings, damping, mass, pos0, percSpeed, fNum)
     MassSpringSim.euler()
     #MassSpringSim.analytical()
-    for i in range(len(MassSpringSim.t)):
-        MassSpringSim.update(i)
+    run = True
+    while True:
+        if run == False:
+            break
+        else:
+            #runs the simulation
+            for i in range(len(MassSpringSim.t)):
+                MassSpringSim.update(i)
+
+            font = pygame.font.SysFont('arialblack', 30)
+            replayText = font.render('Click Space to Replay or esc to Exit', 1, (0,0,0))
+            MassSpringSim.window.blit(replayText, (375,450))
+            pygame.display.update()
+
+            while True:
+                pressed = 0
+                run = False
+                for key in pygame.event.get():
+                    if key.type == pygame.QUIT:
+                        pygame.quit()
+                    if key.type == pygame.KEYDOWN:
+                        if key.key == pygame.K_ESCAPE:
+                            pressed = 1
+                        elif key.key == pygame.K_SPACE:
+                                run = True
+                                pressed = 1
+                if pressed == 1:
+                    break
     pygame.quit()
     sys.exit(0)
