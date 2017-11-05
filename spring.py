@@ -59,6 +59,14 @@ class MassSpring(object):
             return 0
         elif fNum == 2:
             return 10
+        elif fNum == 3:
+            return time
+        elif fNum == 4:
+            return time**2
+        elif fNum == 5:
+            return math.sin(time)
+        elif fNum == 6:
+            return math.exp(-1*time)
 
     def euler(self, iterations = 100000):
         """Unfortunately, right now we need to calculate the approximation when
@@ -82,7 +90,7 @@ class MassSpring(object):
         for i in range(1, iterations):
             t_t.append(t_t[i-1]+self.inc)
             y_t.append(y_t[i-1] + z[i-1]*self.inc)
-            z.append(z[i-1] + (self.getForcingVal(t_t[i-1], self.funcNum)-(self.b/self.m)*z[i-1] - (self.k/self.m)*y_t[i-1])*self.inc)
+            z.append(z[i-1] + (self.getForcingVal(t_t[i-1], self.funcNum)/self.m - (self.b/self.m)*z[i-1] - (self.k/self.m)*y_t[i-1])*self.inc)
             if i%sampleRate == 0:
                 # sample every 100th point
                 self.t = np.append(self.t, t_t[i])
@@ -97,6 +105,12 @@ class MassSpring(object):
             yAct[i] = np.exp(-2.5*tAct[i])*(2*np.cos(9.682*tAct[i]) + 0.5164*np.sin(9.682*tAct[i]))
         # plt.plot(self.t, self.y) show the plots
         # plt.show()
+
+    def renderText(self, text, size, color = (0,0,0), fontStr = 'arialblack'):
+        """Takes in text, font size, color (RGB tuple), font name (string) and
+           returns a font object which can be blit onto a window."""
+        font = pygame.font.SysFont(fontStr, size)
+        return font.render(text, 1, color)
 
     def update(self, frame):
         """Here's what draws everything"""
@@ -115,8 +129,7 @@ class MassSpring(object):
             # system time to make sure computer lag does not cause the mass
             # simulation to be off sync with the time.
             self.printTime = self.t[frame]//1
-            font = pygame.font.SysFont('arialblack', 40)
-            self.timeText = font.render('Time: '+str(int(self.printTime)), 1, (255,0,0))
+            self.timeText = self.renderText('Time: '+str(int(self.printTime)), 40, (255,0,0))
         self.window.blit(self.timeText, (100,100))
         for i in range(5):
             # Draw the measurement lines (lines are spaced out 1 meter)
