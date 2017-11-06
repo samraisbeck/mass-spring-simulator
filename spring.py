@@ -17,7 +17,6 @@ class MassSpring(object):
         self.springs = springs
         self.k = 0
         self.getStiffness()
-        print self.k
         self.block = pygame.image.load('block.png').convert_alpha()
         self.blockW, self.blockH = 40, 80
         self.block = pygame.transform.scale(self.block, (self.blockW, self.blockH))
@@ -37,6 +36,8 @@ class MassSpring(object):
         self.inc = 0.0001
         self.maxInitPos = 5
         self.distanceTexts = []
+        self.ODEstring = ''
+        self.forcingStrings = ['sin(2t)', '0', '10', 't', 't^2', 'sin(t)', 'exp(t)']
         self.funcNum = fNum
 
     def getStiffness(self):
@@ -51,23 +52,23 @@ class MassSpring(object):
                 self.k += spring
         self.k = round(self.k, 3)
 
-    def getForcingVal(self, time, fNum):
+    def getForcingVal(self, time):
         """ Eventually, when we have a variety of forcing functions in the drop-down,
             we can just go by their index number and then return the appropriate
             function value here (fNum will indicate which function we need)."""
-        if fNum == 0:
+        if self.funcNum == 0:
             return math.sin(2*time)
-        elif fNum == 1:
+        elif self.funcNum == 1:
             return 0
-        elif fNum == 2:
+        elif self.funcNum == 2:
             return 10
-        elif fNum == 3:
+        elif self.funcNum == 3:
             return time
-        elif fNum == 4:
+        elif self.funcNum == 4:
             return time**2
-        elif fNum == 5:
+        elif self.funcNum == 5:
             return math.sin(time)
-        elif fNum == 6:
+        elif self.funcNum == 6:
             return math.exp(-1*time)
 
     def euler(self, iterations = 100000):
@@ -92,7 +93,7 @@ class MassSpring(object):
         for i in range(1, iterations):
             t_t.append(t_t[i-1]+self.inc)
             y_t.append(y_t[i-1] + z[i-1]*self.inc)
-            z.append(z[i-1] + (self.getForcingVal(t_t[i-1], self.funcNum)/self.m - (self.b/self.m)*z[i-1] - (self.k/self.m)*y_t[i-1])*self.inc)
+            z.append(z[i-1] + (self.getForcingVal(t_t[i-1])/self.m - (self.b/self.m)*z[i-1] - (self.k/self.m)*y_t[i-1])*self.inc)
             if i%sampleRate == 0:
                 # sample every 100th point
                 self.t = np.append(self.t, t_t[i])
@@ -114,11 +115,19 @@ class MassSpring(object):
         font = pygame.font.SysFont(fontStr, size)
         return font.render(text, 1, color)
 
-    def renderDistanceTexts(self):
+    def renderStaticTexts(self):
         for i in range(1,self.maxInitPos+1):
             self.distanceTexts.append(self.renderText(str(i), 15))
             self.distanceTexts.append(self.renderText(str(-i), 15))
         self.distanceTexts.append(self.renderText('0', 15))
+
+        self.ODEstring += str(self.m)+"x'' + "
+        if self.b != 0:
+            self.ODEstring += str(self.b)+"x' + "
+        self.ODEstring += str(self.k)+"x = "
+        self.ODEstring += self.forcingStrings[self.funcNum]
+        self.ODEstring = self.renderText(self.ODEstring, 30)
+
 
     def update(self, frame):
         """Here's what draws everything"""
@@ -139,10 +148,10 @@ class MassSpring(object):
             self.printTime = self.t[frame]//1
             self.timeText = self.renderText('Time: '+str(int(self.printTime)), 40, (255,0,0))
         self.window.blit(self.timeText, (100,100))
+        self.window.blit(self.ODEstring, (100, 50))
         for i in range(1, self.maxInitPos+1):
             # Draw the measurement lines (lines are spaced out 1 meter)
             pygame.draw.line(self.window, (0,255,0), ((WIDTH/2)+(100*i), self.blockY-20), ((WIDTH/2)+(100*i), self.blockY+self.blockH+20))
-            print i-1+i-1
             self.window.blit(self.distanceTexts[2*(i-1)], ((WIDTH/2)+(100*i), self.blockY+self.blockH+20))
             pygame.draw.line(self.window, (0,255,0), ((WIDTH/2)-(100*i), self.blockY-20), ((WIDTH/2)-(100*i), self.blockY+self.blockH+20))
             self.window.blit(self.distanceTexts[2*i-1], ((WIDTH/2)-(100*i), self.blockY+self.blockH+20))
@@ -169,6 +178,9 @@ class MassSpring(object):
         # self.block.x = self.blockEq + round(self.y[frame]*100)
         self.window.blit(self.block, (self.blockX, self.blockY))
         pygame.display.update()
+        if frame >= 4 and 100*(abs(self.y[frame])+abs(self.y[frame-1])+abs(self.y[frame-2])+abs(self.y[frame-3])+abs(self.y[frame-4])) < 1:
+            return False
+        return True
 
 
 
@@ -214,7 +226,7 @@ if __name__ == '__main__':
     totalSprings = parallelSprings+seriesSprings
     MassSpringSim = MassSpring(totalSprings, damping, mass, pos0, percSpeed, fNum)
     MassSpringSim.euler()
-    MassSpringSim.renderDistanceTexts()
+    MassSpringSim.renderStaticTexts()
     #MassSpringSim.analytical()
     run = True
     while True:
@@ -223,7 +235,8 @@ if __name__ == '__main__':
         else:
             #runs the simulation
             for i in range(len(MassSpringSim.t)):
-                MassSpringSim.update(i)
+                if not MassSpringSim.update(i):
+                    break
 
             font = pygame.font.SysFont('arialblack', 30)
             replayText = font.render('Click Space to Replay or esc to Exit', 1, (0,0,0))

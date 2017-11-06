@@ -300,6 +300,11 @@ class MainGUI(QtGui.QMainWindow):
                               'must be greater than 0% and less or equal to 150%', parent=self)
             box.exec_()
             return
+        elif float(self.massEdit.text()) <= 0:
+            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Mass must be '\
+                              'greater than zero', parent=self)
+            box.exec_()
+            return
         directory = os.path.dirname(os.path.realpath(__file__))
         massArg = 'M'+self.massEdit.text()
         dampingArg = 'D'+self.dampingEdit.text()
@@ -348,6 +353,11 @@ class MainGUI(QtGui.QMainWindow):
         since the math takes less than half a second to complete...but it's
         a little messy.
         Watch this to understand Euler's method: https://www.youtube.com/watch?v=k2V2UYr6lYw"""
+        if float(self.massEdit.text()) <= 0:
+            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Mass must be '\
+                              'greater than zero', parent=self)
+            box.exec_()
+            return
         y_t = [] # temp y
         y_t.append(float(self.initPosEdit.text()))
         t_t = [] # temp t
