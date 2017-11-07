@@ -400,7 +400,7 @@ class MainGUI(QtGui.QMainWindow):
             if self.springArgs[i][0:2] == 'SP':
                 stiffness += float(self.springArgs[i][2:])
             elif self.springArgs[i][0:2] == 'SS':
-                num = float(self.springArgs[i][2:])
+                num = int(self.springArgs[i][2:])
                 seriesK = 0
                 for j in range(num):
                     seriesK += 1.0/float(self.springArgs[i+1+j])
