@@ -3,13 +3,13 @@ import pygame
 import sys, os
 import numpy as np
 WIDTH = 1300
-HEIGHT = 600
+HEIGHT = 1000
 pygame.init()
 
 
 
 class MassSpring(object):
-    def __init__(self, springs, damping, mass, initPos, speedPercent, fNum):
+    def __init__(self, springs, damping, mass, initPos, speedPercent, fNum, direction):
         self.window = pygame.display.set_mode((WIDTH, HEIGHT))
         self.window.fill((255,255,255))
         self.clock = pygame.time.Clock()
@@ -18,12 +18,13 @@ class MassSpring(object):
         self.k = 0
         self.getStiffness()
         self.block = pygame.image.load('block.png').convert_alpha()
-        self.blockW, self.blockH = 40, 80
+        self.blockW, self.blockH = (40, 80) if direction == 'X' else (80,40) 
         self.block = pygame.transform.scale(self.block, (self.blockW, self.blockH))
         self.blockEq = (WIDTH/2) - self.blockW/2 # Block's resting point (middle)
         # Note that in pygame, (0,0) for an item is top left corner
         self.blockX = self.blockEq
-        self.blockY = (HEIGHT/2) - self.blockH/2
+        self.blockYEq = (HEIGHT/2) - self.blockH/2
+        self.blockY = self.blockYEq
         self.m = mass
         self.b = damping
         self.y = None # List of points after a calculation
@@ -39,6 +40,7 @@ class MassSpring(object):
         self.ODEstring = ''
         self.forcingStrings = ['sin(2t)', '0', '10', 't', 't^2', 'sin(t)', 'exp(t)']
         self.funcNum = fNum
+        self.direction = direction
 
     def getStiffness(self):
         """Self explanatory. Series springs are stored in lists, hence the
@@ -91,9 +93,11 @@ class MassSpring(object):
         z = []
         z.append(self.dy0) # z = dy/dx for Euler method
         for i in range(1, iterations):
+            # If spring is oscillating in the y direction, subtract gravity as a forcing function
+            forcingFunction = self.getForcingVal(t_t[i-1]) if self.direction == 'X' else (self.getForcingVal(t_t[i-1]) - 9.81*self.m)
             t_t.append(t_t[i-1]+self.inc)
             y_t.append(y_t[i-1] + z[i-1]*self.inc)
-            z.append(z[i-1] + (self.getForcingVal(t_t[i-1])/self.m - (self.b/self.m)*z[i-1] - (self.k/self.m)*y_t[i-1])*self.inc)
+            z.append(z[i-1] + (forcingFunction/self.m - (self.b/self.m)*z[i-1] - (self.k/self.m)*y_t[i-1])*self.inc)
             if i%sampleRate == 0:
                 # sample every 100th point
                 self.t = np.append(self.t, t_t[i])
@@ -149,34 +153,71 @@ class MassSpring(object):
             self.timeText = self.renderText('Time: '+str(int(self.printTime)), 40, (255,0,0))
         self.window.blit(self.timeText, (100,100))
         self.window.blit(self.ODEstring, (100, 50))
-        for i in range(1, self.maxInitPos+1):
-            # Draw the measurement lines (lines are spaced out 1 meter)
-            pygame.draw.line(self.window, (0,255,0), ((WIDTH/2)+(100*i), self.blockY-20), ((WIDTH/2)+(100*i), self.blockY+self.blockH+20))
-            self.window.blit(self.distanceTexts[2*(i-1)], ((WIDTH/2)+(100*i), self.blockY+self.blockH+20))
-            pygame.draw.line(self.window, (0,255,0), ((WIDTH/2)-(100*i), self.blockY-20), ((WIDTH/2)-(100*i), self.blockY+self.blockH+20))
-            self.window.blit(self.distanceTexts[2*i-1], ((WIDTH/2)-(100*i), self.blockY+self.blockH+20))
-        # print round(self.y[frame]*100)
-        pygame.draw.line(self.window, (255,0,0), (WIDTH/2, self.blockY-20), (WIDTH/2, self.blockY+self.blockH+20)) # Equilibrium line
-        self.window.blit(self.distanceTexts[-1], (WIDTH/2, self.blockY+self.blockH+20))
-        # Multiply blockX by 100 so that an easy map to pixels can be made
-        # i.e 1 meter = 100 pixels, 2.13 meters is 213 pixels, etc
-        self.blockX = self.blockEq+round(self.y[frame]*100)
-        for i in range(len(self.springs)):
-            # Draw the springs. If it's a series spring, divide the distance
-            # by the number of springs and change the color every division
-            # so you can see there are multiple springs.
-            if type(self.springs[i]) == list:
-                Sum = sum([1/k for k in self.springs[i]])
-                dist = (self.blockX+self.blockW/2 - WIDTH/2)
-                startPos = WIDTH/2
-                for j in range(len(self.springs[i])):
-                    perc = (1/self.springs[i][j])/Sum
-                    pygame.draw.line(self.window, (abs(math.cos(j*(math.pi/2)))*255,0,150), (startPos, ((-1)**i*(i*10))+HEIGHT/2), (startPos + perc*dist, ((-1)**i*(i*10))+HEIGHT/2), 5)
-                    startPos += perc*dist
-            else:
-                pygame.draw.line(self.window, (255,0,150), (WIDTH/2, ((-1)**i*(i*10))+HEIGHT/2), (self.blockX+self.blockW/2, ((-1)**i*(i*10))+HEIGHT/2), 5)
-        # self.block.x = self.blockEq + round(self.y[frame]*100)
-        self.window.blit(self.block, (self.blockX, self.blockY))
+
+        if (self.direction == "X"):
+            for i in range(1, self.maxInitPos+1):
+                # Draw the measurement lines (lines are spaced out 1 meter)
+                pygame.draw.line(self.window, (0,255,0), ((WIDTH/2)+(100*i), self.blockY-20), ((WIDTH/2)+(100*i), self.blockY+self.blockH+20))
+                self.window.blit(self.distanceTexts[2*(i-1)], ((WIDTH/2)+(100*i), self.blockY+self.blockH+20))
+                pygame.draw.line(self.window, (0,255,0), ((WIDTH/2)-(100*i), self.blockY-20), ((WIDTH/2)-(100*i), self.blockY+self.blockH+20))
+                self.window.blit(self.distanceTexts[2*i-1], ((WIDTH/2)-(100*i), self.blockY+self.blockH+20))
+            # print round(self.y[frame]*100)
+            pygame.draw.line(self.window, (255,0,0), (WIDTH/2, self.blockY-20), (WIDTH/2, self.blockY+self.blockH+20)) # Equilibrium line
+            self.window.blit(self.distanceTexts[-1], (WIDTH/2, self.blockY+self.blockH+20))
+        
+            # Multiply blockX by 100 so that an easy map to pixels can be made
+            # i.e 1 meter = 100 pixels, 2.13 meters is 213 pixels, etc
+            self.blockX = self.blockEq+round(self.y[frame]*100)
+            for i in range(len(self.springs)):
+                # Draw the springs. If it's a series spring, divide the distance
+                # by the number of springs and change the color every division
+                # so you can see there are multiple springs.
+                if type(self.springs[i]) == list:
+                    Sum = sum([1/k for k in self.springs[i]])
+                    dist = (self.blockX+self.blockW/2 - WIDTH/2)
+                    startPos = WIDTH/2
+                    for j in range(len(self.springs[i])):
+                        perc = (1/self.springs[i][j])/Sum
+                        pygame.draw.line(self.window, (abs(math.cos(j*(math.pi/2)))*255,0,150), (startPos, ((-1)**i*(i*10))+HEIGHT/2), (startPos + perc*dist, ((-1)**i*(i*10))+HEIGHT/2), 5)
+                        startPos += perc*dist
+                else:
+                    pygame.draw.line(self.window, (255,0,150), (WIDTH/2, ((-1)**i*(i*10))+HEIGHT/2), (self.blockX+self.blockW/2, ((-1)**i*(i*10))+HEIGHT/2), 5)
+            # self.block.x = self.blockEq + round(self.y[frame]*100)
+            self.window.blit(self.block, (self.blockX, self.blockY))
+
+        # There were a few weird changes that needed to be made to the X direction case (such as swapping x and y expressions, and changing the order of statements) that I just
+        # copied it and made the changes in the second function. Feel free to make any modifications to improve this.
+        else:
+            for i in range(1, self.maxInitPos+1):
+                # Draw the measurement lines (lines are spaced out 1 meter)
+                pygame.draw.line(self.window, (0,255,0), (self.blockX-20, HEIGHT/2 + 100*i), (self.blockX+self.blockW+20, HEIGHT/2 + 100*i))
+                self.window.blit(self.distanceTexts[2*(i-1)], (self.blockX-20, HEIGHT/2 + 100*i))
+                pygame.draw.line(self.window, (0,255,0), (self.blockX-20, HEIGHT/2 - 100*i), (self.blockX+self.blockW+20, HEIGHT/2 - 100*i))
+                self.window.blit(self.distanceTexts[2*(i-1)], (self.blockX-20, HEIGHT/2 - 100*i))
+
+            # print round(self.y[frame]*100)
+            pygame.draw.line(self.window, (255,0,0), (self.blockX-20, HEIGHT/2), (self.blockX+self.blockW+20, HEIGHT/2)) # Equilibrium line
+            self.window.blit(self.distanceTexts[-1], (self.blockX-20, HEIGHT/2))
+
+            # Since positive is usually considered as going up, negate the values returned from the solver to make the orientation consistent 
+            self.blockY = self.blockYEq+round(-self.y[frame]*100)
+            for i in range(len(self.springs)):
+                # Draw the springs. If it's a series spring, divide the distance
+                # by the number of springs and change the color every division
+                # so you can see there are multiple springs.
+                if type(self.springs[i]) == list:
+                    Sum = sum([1/k for k in self.springs[i]])
+                    dist = (self.blockY+self.blockH/2 - HEIGHT/2)
+                    startPos = HEIGHT/2
+                    for j in range(len(self.springs[i])):
+                        perc = (1/self.springs[i][j])/Sum
+                        pygame.draw.line(self.window, (abs(math.cos(j*(math.pi/2)))*255,0,150), (((-1)**i*(i*10))+WIDTH/2, startPos), (((-1)**i*(i*10))+WIDTH/2, startPos + perc*dist), 5)
+                        startPos += perc*dist
+                else:
+                    pygame.draw.line(self.window, (255,0,150), (WIDTH/2, ((-1)**i*(i*10))+HEIGHT/2), (((-1)**i*(i*10))+WIDTH/2, self.blockY+self.blockH/2), 5)
+            # self.block.x = self.blockEq + round(self.y[frame]*100)
+            self.window.blit(self.block, (self.blockX, self.blockY))
+
         pygame.display.update()
         if frame >= 4 and 100*(abs(self.y[frame])+abs(self.y[frame-1])+abs(self.y[frame-2])+abs(self.y[frame-3])+abs(self.y[frame-4])) < 1:
             return False
@@ -199,6 +240,7 @@ if __name__ == '__main__':
     totalSprings = []
     damping = 0
     mass = 0
+    direction = ""
 
     for i in range(len(sys.argv)):
         if i == 0:
@@ -214,8 +256,8 @@ if __name__ == '__main__':
         elif sys.argv[i][0] == 'M':
             mass = float(sys.argv[i][1:])
             print "Mass is "+str(mass)+" kg"
-        elif sys.argv[i][0] == 'D':
-            damping = float(sys.argv[i][1:])
+        elif sys.argv[i][0:3] == 'DAM':
+            damping = float(sys.argv[i][3:])
             print "Damping is "+str(damping)
         elif sys.argv[i][0:2] == 'IP':
             pos0 = float(sys.argv[i][2:])
@@ -223,8 +265,10 @@ if __name__ == '__main__':
             percSpeed = float(sys.argv[i][2:])/100
         elif sys.argv[i][0:2] == 'FN':
             fNum = int(sys.argv[i][2:])
+        elif sys.argv[i][0:3] == 'DIR':
+            direction = sys.argv[i][3:]
     totalSprings = parallelSprings+seriesSprings
-    MassSpringSim = MassSpring(totalSprings, damping, mass, pos0, percSpeed, fNum)
+    MassSpringSim = MassSpring(totalSprings, damping, mass, pos0, percSpeed, fNum, direction)
     MassSpringSim.euler()
     MassSpringSim.renderStaticTexts()
     #MassSpringSim.analytical()

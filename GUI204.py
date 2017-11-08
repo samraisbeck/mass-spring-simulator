@@ -107,6 +107,22 @@ class MainGUI(QtGui.QMainWindow):
 
     def _UIForcingOptions(self):
         hbox = QtGui.QHBoxLayout()
+        leftGroupbox = QtGui.QGroupBox()
+        leftInnerHBox = QtGui.QHBoxLayout()
+
+        self.direction="X"
+        self.horizontalDirection = QtGui.QRadioButton('Horizontal Spring', parent=self)
+        self.horizontalDirection.setChecked(True)
+        self.horizontalDirection.clicked.connect(self.setHorizontal)
+        self.verticalDirection = QtGui.QRadioButton('Vertical Spring', parent=self)
+        self.verticalDirection.clicked.connect(self.setVertical)
+
+        leftInnerHBox.addWidget(self.horizontalDirection)
+        leftInnerHBox.addWidget(self.verticalDirection)
+        leftGroupbox.setLayout(leftInnerHBox)
+        leftGroupbox.setContentsMargins(0,0,0,0)
+        hbox.addWidget(leftGroupbox)
+
         labelForcing = QtGui.QLabel('Forcing Function: ', parent=self)
         self.forcingDropDown = QtGui.QComboBox()
 
@@ -121,6 +137,7 @@ class MainGUI(QtGui.QMainWindow):
 
         groupbox = QtGui.QGroupBox()
         innerHBox = QtGui.QHBoxLayout()
+
         self.doParams = QtGui.QRadioButton('Show Current Parameters', parent=self)
         self.doParams.setChecked(True)
         self.doParams.clicked.connect(self.reEnableForcingMenu)
@@ -128,6 +145,7 @@ class MainGUI(QtGui.QMainWindow):
         self.antiResonanceCheck = QtGui.QRadioButton('Show Anti-Resonance', parent=self)
         self.resonanceCheck.clicked.connect(self.resonanceForcing)
         self.antiResonanceCheck.clicked.connect(self.resonanceForcing)
+
         innerHBox.addWidget(self.doParams)
         innerHBox.addWidget(self.resonanceCheck)
         innerHBox.addWidget(self.antiResonanceCheck)
@@ -245,6 +263,12 @@ class MainGUI(QtGui.QMainWindow):
 
         box.exec_()
 
+    def setHorizontal(self):
+        self.direction = "X"
+
+    def setVertical(self):
+        self.direction = "Y"
+
     def resonanceForcing(self):
         self.forcingDropDown.setCurrentIndex(0)
         self.forcingDropDown.setEnabled(False)
@@ -307,10 +331,11 @@ class MainGUI(QtGui.QMainWindow):
             return
         directory = os.path.dirname(os.path.realpath(__file__))
         massArg = 'M'+self.massEdit.text()
-        dampingArg = 'D'+self.dampingEdit.text()
+        dampingArg = 'DAM'+self.dampingEdit.text()
         initPosArg = 'IP'+self.initPosEdit.text()
         speedArg = 'PS'+self.speedPercentEdit.text()
         funcNumArg = 'FN'+str(self.forcingDropDown.currentIndex()+1)
+        directionArg = "DIR" + self.direction;
         if self.resonanceCheck.isChecked() or self.antiResonanceCheck.isChecked():
             # Basically force predetermined values if a special case is selected
             massArg = 'M2'
@@ -321,7 +346,7 @@ class MainGUI(QtGui.QMainWindow):
         if self.antiResonanceCheck.isChecked():
             initPosArg = 'IP3'
         args = [sys.executable, directory+'\\spring.py']+self.springArgs+[massArg, \
-                dampingArg, initPosArg, speedArg, funcNumArg]
+                dampingArg, initPosArg, speedArg, funcNumArg, directionArg]
         Popen(args, cwd = directory)
 
     def getForcingVal(self, time, funcNum):
@@ -381,15 +406,16 @@ class MainGUI(QtGui.QMainWindow):
             y_t[0] = 3
         inc = 0.0001
         for i in range(1, 100000):
+            forcingFunction = self.getForcingVal(t_t[i-1], fNum) if self.direction == 'X' else (self.getForcingVal(t_t[i-1], fNum) - 9.81*m)
             t_t.append(t_t[i-1]+inc)
             y_t.append(y_t[i-1] + z[i-1]*inc)
-            z.append(z[i-1] + (self.getForcingVal(t_t[i-1], fNum)/m - (b/m)*z[i-1] - (k/m)*y_t[i-1])*inc)
+            z.append(z[i-1] + (forcingFunction/m - (b/m)*z[i-1] - (k/m)*y_t[i-1])*inc)
         ax = self.fig.add_subplot(111)
         ax.clear()
         ax.plot(t_t, y_t)
         ax.set_title("Position vs. Time")
         ax.set_xlabel("Time (s)")
-        ax.set_ylabel("Position (m)")
+        ax.set_ylabel(self.direction+" Position (m)")
         self.canvas.draw()
 
     def getStiffness(self):
