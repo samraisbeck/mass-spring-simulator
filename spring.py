@@ -18,7 +18,7 @@ class MassSpring(object):
         self.k = 0
         self.getStiffness()
         self.block = pygame.image.load('block.png').convert_alpha()
-        self.blockW, self.blockH = (40, 80) if direction == 'X' else (80,40) 
+        self.blockW, self.blockH = (40, 80) if direction == 'X' else (80,40)
         self.block = pygame.transform.scale(self.block, (self.blockW, self.blockH))
         self.blockEq = (WIDTH/2) - self.blockW/2 # Block's resting point (middle)
         # Note that in pygame, (0,0) for an item is top left corner
@@ -41,6 +41,7 @@ class MassSpring(object):
         self.forcingStrings = ['sin(2t)', '0', '10', 't', 't^2', 'sin(t)', 'exp(t)']
         self.funcNum = fNum
         self.direction = direction
+        self.checkTimes = [0, 0, 0]
 
     def getStiffness(self):
         """Self explanatory. Series springs are stored in lists, hence the
@@ -124,11 +125,15 @@ class MassSpring(object):
             self.distanceTexts.append(self.renderText(str(i), 15))
             self.distanceTexts.append(self.renderText(str(-i), 15))
         self.distanceTexts.append(self.renderText('0', 15))
+        if self.direction == 'X':
+            depVar = 'x'
+        else:
+            depVar = 'y'
 
-        self.ODEstring += str(self.m)+"x'' + "
+        self.ODEstring += str(self.m)+depVar+"'' + "
         if self.b != 0:
-            self.ODEstring += str(self.b)+"x' + "
-        self.ODEstring += str(self.k)+"x = "
+            self.ODEstring += str(self.b)+depVar+"' + "
+        self.ODEstring += str(self.k)+depVar+" = "
         self.ODEstring += self.forcingStrings[self.funcNum]
         self.ODEstring = self.renderText(self.ODEstring, 30)
 
@@ -150,6 +155,9 @@ class MassSpring(object):
             # system time to make sure computer lag does not cause the mass
             # simulation to be off sync with the time.
             self.printTime = self.t[frame]//1
+            self.checkTimes[0] = self.checkTimes[1]
+            self.checkTimes[1] = (self.checkTimes[1]+frame)/2
+            self.checkTimes[2] = frame
             self.timeText = self.renderText('Time: '+str(int(self.printTime)), 40, (255,0,0))
         self.window.blit(self.timeText, (100,100))
         self.window.blit(self.ODEstring, (100, 50))
@@ -164,7 +172,7 @@ class MassSpring(object):
             # print round(self.y[frame]*100)
             pygame.draw.line(self.window, (255,0,0), (WIDTH/2, self.blockY-20), (WIDTH/2, self.blockY+self.blockH+20)) # Equilibrium line
             self.window.blit(self.distanceTexts[-1], (WIDTH/2, self.blockY+self.blockH+20))
-        
+
             # Multiply blockX by 100 so that an easy map to pixels can be made
             # i.e 1 meter = 100 pixels, 2.13 meters is 213 pixels, etc
             self.blockX = self.blockEq+round(self.y[frame]*100)
@@ -199,7 +207,7 @@ class MassSpring(object):
             pygame.draw.line(self.window, (255,0,0), (self.blockX-20, HEIGHT/2), (self.blockX+self.blockW+20, HEIGHT/2)) # Equilibrium line
             self.window.blit(self.distanceTexts[-1], (self.blockX-20, HEIGHT/2))
 
-            # Since positive is usually considered as going up, negate the values returned from the solver to make the orientation consistent 
+            # Since positive is usually considered as going up, negate the values returned from the solver to make the orientation consistent
             self.blockY = self.blockYEq+round(-self.y[frame]*100)
             for i in range(len(self.springs)):
                 # Draw the springs. If it's a series spring, divide the distance
@@ -219,8 +227,14 @@ class MassSpring(object):
             self.window.blit(self.block, (self.blockX, self.blockY))
 
         pygame.display.update()
-        if frame >= 4 and 100*(abs(self.y[frame])+abs(self.y[frame-1])+abs(self.y[frame-2])+abs(self.y[frame-3])+abs(self.y[frame-4])) < 1:
-            return False
+        # Check to see if the mass is still moving
+
+        if abs((self.y[self.checkTimes[0]]-self.y[self.checkTimes[1]])*100) < 0.5 and\
+           abs((self.y[self.checkTimes[1]]-self.y[self.checkTimes[2]])*100) < 0.5 and\
+           abs((self.y[self.checkTimes[0]]-self.y[self.checkTimes[2]])*100) < 0.5 and\
+           self.printTime != 0:
+           return False
+
         return True
 
 
@@ -284,7 +298,7 @@ if __name__ == '__main__':
 
             font = pygame.font.SysFont('arialblack', 30)
             replayText = font.render('Click Space to Replay or esc to Exit', 1, (0,0,0))
-            MassSpringSim.window.blit(replayText, (375,450))
+            MassSpringSim.window.blit(replayText, (375,HEIGHT/4))
             pygame.display.update()
 
             while True:
