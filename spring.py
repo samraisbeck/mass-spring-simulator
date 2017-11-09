@@ -2,6 +2,7 @@ import math
 import pygame
 import sys, os
 import numpy as np
+import matplotlib.pyplot as plt
 WIDTH = 1300
 HEIGHT = 1000
 pygame.init()
@@ -105,15 +106,24 @@ class MassSpring(object):
                 self.t = np.append(self.t, t_t[i])
                 self.y = np.append(self.y, y_t[i])
     def analytical(self, iterations=100000):
+        data = open('errorData.txt', 'w')
         yAct = np.zeros(iterations)
         tAct = np.zeros(iterations)
         tAct[0] = 0
         yAct[0] = self.y0
+        sampleRate = 100
+
         for i in range(1, iterations):
             tAct[i] = tAct[i-1]+self.inc
-            yAct[i] = np.exp(-2.5*tAct[i])*(2*np.cos(9.682*tAct[i]) + 0.5164*np.sin(9.682*tAct[i]))
-        # plt.plot(self.t, self.y) show the plots
-        # plt.show()
+            yAct[i] = np.exp(-(1/3.0)*tAct[i])*(2*np.cos((math.sqrt(29)/3)*tAct[i]) + (2/math.sqrt(29))*np.sin((math.sqrt(29)/3)*tAct[i]))
+            if i%sampleRate==0:
+                data.write(str(round(100*abs(yAct[i]-self.y[i/100])/abs(yAct[i]), 6))+'\n')
+            if round(tAct[i], 3) == 9.73:
+                print yAct[i], self.y[i/100]
+        data.close()
+
+        plt.plot(self.t, self.y, tAct, yAct) # show the plots
+        plt.show()
 
     def renderText(self, text, size, color = (0,0,0), fontStr = 'arialblack'):
         """Takes in text, font size, color (RGB tuple), font name (string) and
@@ -287,7 +297,7 @@ if __name__ == '__main__':
                                lengthOfSim)
     MassSpringSim.euler(int(MassSpringSim.length/MassSpringSim.inc))
     MassSpringSim.renderStaticTexts()
-    #MassSpringSim.analytical()
+    MassSpringSim.analytical()
     run = True
     while True:
         if run == False:
