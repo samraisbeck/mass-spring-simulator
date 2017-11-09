@@ -94,7 +94,7 @@ class MassSpring(object):
         t_t.append(self.t0)
         z = []
         z.append(self.dy0) # z = dy/dx for Euler method
-        for i in range(1, iterations):
+        for i in range(1, iterations+1): # iterations + 1 allows simmulaiton to update displayed time to the proper final value
             # If spring is oscillating in the y direction, subtract gravity as a forcing function
             forcingFunction = self.getForcingVal(t_t[i-1]) if self.direction == 'X' else (self.getForcingVal(t_t[i-1]) - 9.81*self.m)
             t_t.append(t_t[i-1]+self.inc)
@@ -298,9 +298,9 @@ if __name__ == '__main__':
                 if not MassSpringSim.update(i):
                     break
 
-            font = pygame.font.SysFont('arialblack', 30)
-            replayText = font.render('Click Space to Replay or esc to Exit', 1, (0,0,0))
-            MassSpringSim.window.blit(replayText, (375,HEIGHT/4))
+            font = pygame.font.SysFont('arialblack', 40)
+            replayText = font.render('Click Space to Replay or esc to Exit', 1, (0,0,125))
+            MassSpringSim.window.blit(replayText, (260,HEIGHT/4))
             pygame.display.update()
 
             while True:
