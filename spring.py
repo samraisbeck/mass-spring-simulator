@@ -94,7 +94,7 @@ class MassSpring(object):
         t_t.append(self.t0)
         z = []
         z.append(self.dy0) # z = dy/dx for Euler method
-        for i in range(1, iterations):
+        for i in range(1, iterations+1):
             # If spring is oscillating in the y direction, subtract gravity as a forcing function
             forcingFunction = self.getForcingVal(t_t[i-1]) if self.direction == 'X' else (self.getForcingVal(t_t[i-1]) - 9.81*self.m)
             t_t.append(t_t[i-1]+self.inc)
