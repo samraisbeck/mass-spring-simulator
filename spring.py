@@ -9,7 +9,7 @@ pygame.init()
 
 
 class MassSpring(object):
-    def __init__(self, springs, damping, mass, initPos, speedPercent, fNum, direction):
+    def __init__(self, springs, damping, mass, initPos, speedPercent, fNum, direction, lengthOfSim):
         self.window = pygame.display.set_mode((WIDTH, HEIGHT))
         self.window.fill((255,255,255))
         self.clock = pygame.time.Clock()
@@ -42,6 +42,7 @@ class MassSpring(object):
         self.funcNum = fNum
         self.direction = direction
         self.checkTimes = [0, 0, 0]
+        self.length = lengthOfSim
 
     def getStiffness(self):
         """Self explanatory. Series springs are stored in lists, hence the
@@ -82,7 +83,7 @@ class MassSpring(object):
         since the math takes less than half a second to complete...but it's
         a little messy.
         Watch this to understand Euler's method: https://www.youtube.com/watch?v=k2V2UYr6lYw"""
-        sampleRate = iterations/1000 # only sample 1000 points.
+        sampleRate = 100 # only sample 100 points.
         self.y = np.array([0])
         y_t = [] # temp y
         self.y[0] = self.y0
@@ -269,10 +270,8 @@ if __name__ == '__main__':
             parallelSprings.append(float(sys.argv[i][2:]))
         elif sys.argv[i][0] == 'M':
             mass = float(sys.argv[i][1:])
-            print "Mass is "+str(mass)+" kg"
         elif sys.argv[i][0:3] == 'DAM':
             damping = float(sys.argv[i][3:])
-            print "Damping is "+str(damping)
         elif sys.argv[i][0:2] == 'IP':
             pos0 = float(sys.argv[i][2:])
         elif sys.argv[i][0:2] == 'PS':
@@ -281,9 +280,12 @@ if __name__ == '__main__':
             fNum = int(sys.argv[i][2:])
         elif sys.argv[i][0:3] == 'DIR':
             direction = sys.argv[i][3:]
+        elif sys.argv[i][0:3] == 'LEN':
+            lengthOfSim = int(sys.argv[i][3:])
     totalSprings = parallelSprings+seriesSprings
-    MassSpringSim = MassSpring(totalSprings, damping, mass, pos0, percSpeed, fNum, direction)
-    MassSpringSim.euler()
+    MassSpringSim = MassSpring(totalSprings, damping, mass, pos0, percSpeed, fNum, direction,\
+                               lengthOfSim)
+    MassSpringSim.euler(int(MassSpringSim.length/MassSpringSim.inc))
     MassSpringSim.renderStaticTexts()
     #MassSpringSim.analytical()
     run = True

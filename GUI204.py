@@ -170,6 +170,11 @@ class MainGUI(QtGui.QMainWindow):
         self.speedPercentEdit.setToolTip('100 is full speed, 50 is half speed, etc...')
         hbox.addWidget(label)
         hbox.addWidget(self.speedPercentEdit)
+        label = QtGui.QLabel('Length of Simulation (0 to 20s): ', parent=self)
+        self.lengthEdit = QtGui.QLineEdit()
+        self.lengthEdit.setText('10')
+        hbox.addWidget(label)
+        hbox.addWidget(self.lengthEdit)
         return hbox
 
     def _UISetupPlot(self):
@@ -329,24 +334,31 @@ class MainGUI(QtGui.QMainWindow):
                               'greater than zero', parent=self)
             box.exec_()
             return
+        elif int(self.lengthEdit.text()) <= 0 or int(self.lengthEdit.text()) > 20:
+            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Length of  '\
+                              'simulation must be greater than 0s but no more than 20s', parent=self)
+            box.exec_()
+            return
         directory = os.path.dirname(os.path.realpath(__file__))
+        springArg = self.springArgs
         massArg = 'M'+self.massEdit.text()
         dampingArg = 'DAM'+self.dampingEdit.text()
         initPosArg = 'IP'+self.initPosEdit.text()
         speedArg = 'PS'+self.speedPercentEdit.text()
         funcNumArg = 'FN'+str(self.forcingDropDown.currentIndex()+1)
-        directionArg = "DIR" + self.direction;
+        directionArg = "DIR" + self.direction
+        lengthArg = 'LEN' + self.lengthEdit.text()
         if self.resonanceCheck.isChecked() or self.antiResonanceCheck.isChecked():
             # Basically force predetermined values if a special case is selected
             massArg = 'M2'
             dampingArg = 'D0'
-            self.springArgs = ['SP8']
+            springArg = ['SP8']
             funcNumArg = 'FN0'
             initPosArg = 'IP-3'
         if self.antiResonanceCheck.isChecked():
             initPosArg = 'IP3'
-        args = [sys.executable, directory+'\\spring.py']+self.springArgs+[massArg, \
-                dampingArg, initPosArg, speedArg, funcNumArg, directionArg]
+        args = [sys.executable, directory+'\\spring.py']+springArg+[massArg, \
+                dampingArg, initPosArg, speedArg, funcNumArg, directionArg, lengthArg]
         Popen(args, cwd = directory)
 
     def getForcingVal(self, time, funcNum):
@@ -405,11 +417,25 @@ class MainGUI(QtGui.QMainWindow):
         if self.antiResonanceCheck.isChecked():
             y_t[0] = 3
         inc = 0.0001
-        for i in range(1, 100000):
+        iterations = int(int(self.lengthEdit.text())/inc)
+        print iterations
+        for i in range(1, iterations):
             forcingFunction = self.getForcingVal(t_t[i-1], fNum) if self.direction == 'X' else (self.getForcingVal(t_t[i-1], fNum) - 9.81*m)
+            """
+            Here's my attempt at Midpoint, didn't help much if at all
+            k1y = z[i-1]
+            k1z = (forcingFunction - b*z[i-1] - k*y_t[i-1])/m
+            forcingFunctionInc = self.getForcingVal(t_t[i-1]+0.5*inc, fNum) if self.direction == 'X' else (self.getForcingVal(t_t[i-1]+0.5*inc, fNum) - 9.81*m)
+            k2y = z[i-1]+0.5*k1y*inc
+            k2z = (forcingFunctionInc - b*(z[i-1]+0.5*k1z*inc) - k*(y_t[i-1]+0.5*k1z*inc))/m
+            y_t.append(y_t[i-1] + k2y*inc)
+            z.append(z[i-1] + k2z*inc)
+            t_t.append(t_t[i-1]+inc)
+            """
             t_t.append(t_t[i-1]+inc)
             y_t.append(y_t[i-1] + z[i-1]*inc)
             z.append(z[i-1] + (forcingFunction/m - (b/m)*z[i-1] - (k/m)*y_t[i-1])*inc)
+
         ax = self.fig.add_subplot(111)
         ax.clear()
         ax.plot(t_t, y_t)
