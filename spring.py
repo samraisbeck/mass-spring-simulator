@@ -222,7 +222,7 @@ class MassSpring(object):
                         pygame.draw.line(self.window, (abs(math.cos(j*(math.pi/2)))*255,0,150), (((-1)**i*(i*10))+WIDTH/2, startPos), (((-1)**i*(i*10))+WIDTH/2, startPos + perc*dist), 5)
                         startPos += perc*dist
                 else:
-                    pygame.draw.line(self.window, (255,0,150), (WIDTH/2, ((-1)**i*(i*10))+HEIGHT/2), (((-1)**i*(i*10))+WIDTH/2, self.blockY+self.blockH/2), 5)
+                    pygame.draw.line(self.window, (255,0,150), ((-1)**i*(i*10)+WIDTH/2, HEIGHT/2), (((-1)**i*(i*10))+WIDTH/2, self.blockY+self.blockH/2), 5)
             # self.block.x = self.blockEq + round(self.y[frame]*100)
             self.window.blit(self.block, (self.blockX, self.blockY))
 
