@@ -2,7 +2,6 @@ from math import cos, sin, tan, exp, sqrt, pi
 import pygame
 import sys, os
 import numpy as np
-import fourFn
 import matplotlib.pyplot as plt
 WIDTH = 1300
 HEIGHT = 1000

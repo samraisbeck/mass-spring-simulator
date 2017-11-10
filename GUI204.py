@@ -12,8 +12,6 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from math import cos, sin, tan, exp, pi, sqrt
 
-import fourFn
-
 """
 To do:
 - Forcing Functions
@@ -490,7 +488,6 @@ class MainGUI(QtGui.QMainWindow):
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
-    fourFn.init()
     mw = MainGUI()
     app.exec_()
     
