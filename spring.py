@@ -2,6 +2,7 @@ import math
 import pygame
 import sys, os
 import numpy as np
+import fourFn
 WIDTH = 1300
 HEIGHT = 1000
 pygame.init()
@@ -9,7 +10,7 @@ pygame.init()
 
 
 class MassSpring(object):
-    def __init__(self, springs, damping, mass, initPos, speedPercent, fNum, direction, lengthOfSim):
+    def __init__(self, springs, damping, mass, initPos, speedPercent, forcingFunction, direction, lengthOfSim):
         self.window = pygame.display.set_mode((WIDTH, HEIGHT))
         self.window.fill((255,255,255))
         self.clock = pygame.time.Clock()
@@ -39,7 +40,7 @@ class MassSpring(object):
         self.distanceTexts = []
         self.ODEstring = ''
         self.forcingStrings = ['sin(2t)', '0', '10', 't', 't^2', 'sin(t)', 'exp(t)']
-        self.funcNum = fNum
+        self.forcingFunction = fNum
         self.direction = direction
         self.checkTimes = [0, 0, 0]
         self.length = lengthOfSim
@@ -60,20 +61,10 @@ class MassSpring(object):
         """ Eventually, when we have a variety of forcing functions in the drop-down,
             we can just go by their index number and then return the appropriate
             function value here (fNum will indicate which function we need)."""
-        if self.funcNum == 0:
-            return math.sin(2*time)
-        elif self.funcNum == 1:
-            return 0
-        elif self.funcNum == 2:
-            return 10
-        elif self.funcNum == 3:
-            return time
-        elif self.funcNum == 4:
-            return time**2
-        elif self.funcNum == 5:
-            return math.sin(time)
-        elif self.funcNum == 6:
-            return math.exp(-1*time)
+
+        # Using external code to evaluate the forcing function at each time interval
+        function = self.forcingFunction.replace("t", str(time))
+        return fourFn.parseData(function);
 
     def euler(self, iterations = 100000):
         """Unfortunately, right now we need to calculate the approximation when
@@ -104,6 +95,7 @@ class MassSpring(object):
                 # sample every 100th point
                 self.t = np.append(self.t, t_t[i])
                 self.y = np.append(self.y, y_t[i])
+
     def analytical(self, iterations=100000):
         yAct = np.zeros(iterations)
         tAct = np.zeros(iterations)
@@ -135,7 +127,7 @@ class MassSpring(object):
         if self.b != 0:
             self.ODEstring += str(self.b)+depVar+"' + "
         self.ODEstring += str(self.k)+depVar+" = "
-        self.ODEstring += self.forcingStrings[self.funcNum]
+        self.ODEstring += self.forcingFunction
         self.ODEstring = self.renderText(self.ODEstring, 30)
 
 
@@ -277,7 +269,7 @@ if __name__ == '__main__':
         elif sys.argv[i][0:2] == 'PS':
             percSpeed = float(sys.argv[i][2:])/100
         elif sys.argv[i][0:2] == 'FN':
-            fNum = int(sys.argv[i][2:])
+            fNum = (sys.argv[i][2:])
         elif sys.argv[i][0:3] == 'DIR':
             direction = sys.argv[i][3:]
         elif sys.argv[i][0:3] == 'LEN':

@@ -3,10 +3,16 @@ from PySide import QtGui, QtCore
 import sys, os
 from subprocess import Popen
 import matplotlib
+from pyparsing import Literal,CaselessLiteral,Word,Combine,Group,Optional,\
+    ZeroOrMore,Forward,nums,alphas
+import operator
+import re
 matplotlib.use('Qt4Agg')
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import math
+
+import fourFn
 
 """
 To do:
@@ -107,6 +113,7 @@ class MainGUI(QtGui.QMainWindow):
 
     def _UIForcingOptions(self):
         hbox = QtGui.QHBoxLayout()
+        vbox = QtGui.QVBoxLayout()
         leftGroupbox = QtGui.QGroupBox()
         leftInnerHBox = QtGui.QHBoxLayout()
 
@@ -121,19 +128,21 @@ class MainGUI(QtGui.QMainWindow):
         leftInnerHBox.addWidget(self.verticalDirection)
         leftGroupbox.setLayout(leftInnerHBox)
         leftGroupbox.setContentsMargins(0,0,0,0)
-        hbox.addWidget(leftGroupbox)
+        vbox.addWidget(leftGroupbox)
 
-        labelForcing = QtGui.QLabel('Forcing Function: ', parent=self)
-        self.forcingDropDown = QtGui.QComboBox()
+        self.forcingFunctionText = "0"
+        labelForcing = QtGui.QLabel('Forcing Function in terms of t: ', parent=self)
+        self.forcingField = QtGui.QLineEdit()
+        self.forcingField.setPlaceholderText('Add forcing function (in terms of t)...')
+        forcingSubmit = QtGui.QPushButton('Set forcing function', parent=self)
+        forcingSubmit.clicked.connect(self.setForcingFunction)
+        self.forcingFunctionLabel = QtGui.QLabel('Forcing Function: ', parent=self)
 
         hbox.addWidget(labelForcing, 0, QtCore.Qt.AlignRight)
-        self.forcingDropDown.addItem('None')
-        self.forcingDropDown.addItem('f(t) = 10')
-        self.forcingDropDown.addItem('f(t) = t')
-        self.forcingDropDown.addItem('f(t) = t^2')
-        self.forcingDropDown.addItem('f(t) = sin(t)')
-        self.forcingDropDown.addItem('f(t) = e^-t')
-        hbox.addWidget(self.forcingDropDown)
+        hbox.addWidget(self.forcingField)
+        hbox.addWidget(forcingSubmit)
+        hbox.addWidget(self.forcingFunctionLabel)
+
 
         groupbox = QtGui.QGroupBox()
         innerHBox = QtGui.QHBoxLayout()
@@ -155,7 +164,8 @@ class MainGUI(QtGui.QMainWindow):
         button = QtGui.QPushButton("What's this doing?", parent=self)
         button.clicked.connect(self.resonanceHelp)
         hbox.addWidget(button)
-        return hbox
+        vbox.addLayout(hbox)
+        return vbox
 
     def _UIInitPosAndSpeed(self):
         hbox = QtGui.QHBoxLayout()
@@ -198,6 +208,47 @@ class MainGUI(QtGui.QMainWindow):
         return hbox
 
 ### GUI SETUP ENDS HERE #############################
+
+
+    def setForcingFunction(self):
+        self.setForcingFunctionText = "0"
+        initialForcingFunction = self.forcingField.text()
+        initialForcingFunction.replace(" ", "") # Gets rid of spaces (makes checks easier)
+
+        # Substitutes acceptable disallowed strings (like function calls) with constants
+        # and replaces unacceptable formatting with disallowed strings
+        temp = re.sub(r'[0-9]\.[0-9]', '1', initialForcingFunction)
+        temp = re.sub(r'cos', '1', temp)
+        temp = re.sub(r'sin', '1', temp)
+        temp = re.sub(r'tan', '1', temp)
+        temp = re.sub(r'e', '1', temp)
+        temp = re.sub(r't', '1', temp)
+        temp = re.sub(r'(?i)pi', '1', temp)
+        temp = re.sub(r'[-+*/][-+*/]', 'NOT GOOD', temp)
+        temp = re.sub(r'^[-+*/]', 'NOT GOOD', temp)
+        # TODO check for operator at the end of the string
+
+        # Checks to see if modified string has any disallowed characters
+        unacceptableCharacters = re.search(r'[a-zA-Z\.]', temp)
+
+        if unacceptableCharacters == None: 
+            # Means entered expression is valid, can store it
+            # First need to modify it into an evaluation friendly expression
+            initialForcingFunction = re.sub(r'(?<=[0-9])t', '*t', initialForcingFunction)
+            initialForcingFunction = re.sub(r't(?<=[0-9])', 't*', initialForcingFunction)
+            self.forcingFunctionText = initialForcingFunction
+            self.forcingFunctionLabel.setText('Forcing Function: '+self.forcingFunctionText)
+        else:
+            # Expression entered was invalid, clear field and put up error message
+            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Invalid expression '\
+                                  'was entered. Check to make sure there are no variables other than '\
+                                  't, and that there are no mistakes in your expression ', parent=self)
+            box.exec_()
+        self.forcingFunctionLabel.setText('Forcing Function: ' + self.forcingFunctionText)
+        return
+
+
+
 
     def addSprings(self):
         """Based on text in the spring stiffness box, and also whether the
@@ -275,11 +326,13 @@ class MainGUI(QtGui.QMainWindow):
         self.direction = "Y"
 
     def resonanceForcing(self):
-        self.forcingDropDown.setCurrentIndex(0)
-        self.forcingDropDown.setEnabled(False)
+        doNothing = 1
+        # self.forcingDropDown.setCurrentIndex(0)
+        # self.forcingDropDown.setEnabled(False)
 
     def reEnableForcingMenu(self):
-        self.forcingDropDown.setEnabled(True)
+        # self.forcingDropDown.setEnabled(True)
+        doNothing = 2
 
     def deleteLastSpring(self):
         """Deletes the last spring entered. If it's a series spring, deletes
@@ -345,7 +398,7 @@ class MainGUI(QtGui.QMainWindow):
         dampingArg = 'DAM'+self.dampingEdit.text()
         initPosArg = 'IP'+self.initPosEdit.text()
         speedArg = 'PS'+self.speedPercentEdit.text()
-        funcNumArg = 'FN'+str(self.forcingDropDown.currentIndex()+1)
+        funcNumArg = 'FN'+str(self.forcingFunctionText)
         directionArg = "DIR" + self.direction
         lengthArg = 'LEN' + self.lengthEdit.text()
         if self.resonanceCheck.isChecked() or self.antiResonanceCheck.isChecked():
@@ -361,26 +414,15 @@ class MainGUI(QtGui.QMainWindow):
                 dampingArg, initPosArg, speedArg, funcNumArg, directionArg, lengthArg]
         Popen(args, cwd = directory)
 
-    def getForcingVal(self, time, funcNum):
+    def getForcingVal(self, time):
         """ Eventually, when we have a variety of forcing functions in the drop-down,
             we can just go by their index number and then return the appropriate
             function value here (fNum will indicate which function we need)."""
-        if funcNum == 0:
-            return math.sin(2*time)
-        elif funcNum == 1:
-            return 0
-        elif funcNum == 2:
-            return 10
-        elif funcNum == 3:
-            return time
-        elif funcNum == 4:
-            return time**2
-        elif funcNum == 5:
-            return math.sin(time)
-        elif funcNum == 6:
-            return math.exp(-1*time)
 
+        function = self.forcingFunctionText.replace("t", str(time))
 
+        # Using external code to evaluate the forcing function at each time interval
+        return fourFn.parseData(function);
 
     def plotData(self):
         """Unfortunately, right now we need to calculate the approximation when
@@ -406,7 +448,7 @@ class MainGUI(QtGui.QMainWindow):
         m = float(self.massEdit.text())
         k = self.getStiffness()
         # + 1 here because fNum = 0 reserved for the resonance cases
-        fNum = self.forcingDropDown.currentIndex() + 1
+        #fNum = self.forcingDropDown.currentIndex() + 1
         if self.resonanceCheck.isChecked() or self.antiResonanceCheck.isChecked():
             # Force values if special case is selected
             b = 0.0
@@ -418,9 +460,10 @@ class MainGUI(QtGui.QMainWindow):
             y_t[0] = 3
         inc = 0.0001
         iterations = int(int(self.lengthEdit.text())/inc)
-        print iterations
+        print self.forcingFunctionText
+        #print iterations
         for i in range(1, iterations):
-            forcingFunction = self.getForcingVal(t_t[i-1], fNum) if self.direction == 'X' else (self.getForcingVal(t_t[i-1], fNum) - 9.81*m)
+            forcingFunction = self.getForcingVal(t_t[i-1]) if self.direction == 'X' else (self.getForcingVal(t_t[i-1]) - 9.81*m)
             """
             Here's my attempt at Midpoint, didn't help much if at all
             k1y = z[i-1]
@@ -461,5 +504,9 @@ class MainGUI(QtGui.QMainWindow):
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
+    fourFn.init()
     mw = MainGUI()
     app.exec_()
+    
+    
+
