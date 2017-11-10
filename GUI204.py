@@ -97,10 +97,10 @@ class MainGUI(QtGui.QMainWindow):
         groupbox = QtGui.QGroupBox()
         ultHBox = QtGui.QHBoxLayout()
         self.direction="X"
-        self.horizontalDirection = QtGui.QRadioButton('Horizontal Spring', parent=self)
+        self.horizontalDirection = QtGui.QRadioButton('Horizontal System', parent=self)
         self.horizontalDirection.setChecked(True)
         self.horizontalDirection.clicked.connect(self.setHorizontal)
-        self.verticalDirection = QtGui.QRadioButton('Vertical Spring', parent=self)
+        self.verticalDirection = QtGui.QRadioButton('Vertical System', parent=self)
         self.verticalDirection.clicked.connect(self.setVertical)
         vbox = QtGui.QVBoxLayout()
         vbox.addWidget(self.horizontalDirection)
@@ -154,7 +154,7 @@ class MainGUI(QtGui.QMainWindow):
         groupbox = QtGui.QGroupBox()
         innerHBox = QtGui.QHBoxLayout()
 
-        self.doParams = QtGui.QRadioButton('Show Current Parameters', parent=self)
+        self.doParams = QtGui.QRadioButton('Use Current Parameters', parent=self)
         self.doParams.setChecked(True)
         self.doParams.clicked.connect(self.reEnableForcingMenu)
         self.resonanceCheck = QtGui.QRadioButton('Show Resonance', parent=self)
@@ -172,7 +172,7 @@ class MainGUI(QtGui.QMainWindow):
 
     def _UIInitPosAndSpeed(self):
         hbox = QtGui.QHBoxLayout()
-        label = QtGui.QLabel('Initial Position (-5 to 5 meters): ', parent=self)
+        label = QtGui.QLabel('Initial Position (-5 to +5 meters): ', parent=self)
         self.initPosEdit = QtGui.QLineEdit()
         self.initPosEdit.setStyleSheet('background-color: white')
         self.initPosEdit.setText('2')
