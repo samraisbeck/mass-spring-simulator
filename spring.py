@@ -57,13 +57,13 @@ class MassSpring(object):
                 self.k += spring
         self.k = round(self.k, 3)
 
-    def getForcingVal(self, time):
+    def getForcingVal(self, t):
         """ Eventually, when we have a variety of forcing functions in the drop-down,
             we can just go by their index number and then return the appropriate
             function value here (fNum will indicate which function we need)."""
 
         # Using external code to evaluate the forcing function at each time interval
-        
+
         return eval(self.forcingFunction);
 
     def euler(self, iterations = 100000):
@@ -85,7 +85,7 @@ class MassSpring(object):
         t_t.append(self.t0)
         z = []
         z.append(self.dy0) # z = dy/dx for Euler method
-        self.forcingFunction = self.forcingFunction.replace("t", "time")
+        #self.forcingFunction = self.forcingFunction.replace("t", "time")
         for i in range(1, iterations+1): # iterations + 1 allows simmulaiton to update displayed time to the proper final value
             # If spring is oscillating in the y direction, subtract gravity as a forcing function
             forcingFunction = self.getForcingVal(t_t[i-1]) if self.direction == 'X' else (self.getForcingVal(t_t[i-1]) - 9.81*self.m)
