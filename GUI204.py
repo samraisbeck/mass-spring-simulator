@@ -326,12 +326,12 @@ class MainGUI(QtGui.QMainWindow):
         self.direction = "Y"
 
     def resonanceForcing(self):
-        doNothing = 1
-        # self.forcingDropDown.setCurrentIndex(0)
-        # self.forcingDropDown.setEnabled(False)
+        self.forcingFunctionText = "sin(2*t)"
+        self.forcingFunctionLabel.setText('Forcing Function: '+self.forcingFunctionText)
+        self.forcingField.setEnabled(False)
 
     def reEnableForcingMenu(self):
-        # self.forcingDropDown.setEnabled(True)
+        self.forcingField.setEnabled(True)
         doNothing = 2
 
     def deleteLastSpring(self):
@@ -455,7 +455,6 @@ class MainGUI(QtGui.QMainWindow):
             m = 2.0
             k = 8.0
             y_t[0] = -3
-            fNum = 0
         if self.antiResonanceCheck.isChecked():
             y_t[0] = 3
         inc = 0.001
@@ -464,16 +463,11 @@ class MainGUI(QtGui.QMainWindow):
         #print iterations
         for i in range(1, iterations):
             forcingFunction = self.getForcingVal(t_t[i-1]) if self.direction == 'X' else (self.getForcingVal(t_t[i-1]) - 9.81*m)
-            """
-            Here's my attempt at Midpoint, didn't help much if at all
-=======
-        for i in range(1, iterations+1):
-            forcingFunction = self.getForcingVal(t_t[i-1], fNum) if self.direction == 'X' else (self.getForcingVal(t_t[i-1], fNum) - 9.81*m)
-
+            
             # Midpoint Method
             k1y = z[i-1]
             k1z = (forcingFunction - b*z[i-1] - k*y_t[i-1])/m
-            forcingFunctionInc = self.getForcingVal(t_t[i-1]+0.5*inc, fNum) if self.direction == 'X' else (self.getForcingVal(t_t[i-1]+0.5*inc, fNum) - 9.81*m)
+            forcingFunctionInc = self.getForcingVal(t_t[i-1]+0.5*inc) if self.direction == 'X' else (self.getForcingVal(t_t[i-1]+0.5*inc) - 9.81*m)
             k2y = z[i-1]+0.5*k1z*inc
             k2z = (forcingFunctionInc - b*(z[i-1]+0.5*k1z*inc) - k*(y_t[i-1]+0.5*k1y*inc))/m
             y_t.append(y_t[i-1] + k2y*inc)
