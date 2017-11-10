@@ -458,7 +458,7 @@ class MainGUI(QtGui.QMainWindow):
             fNum = 0
         if self.antiResonanceCheck.isChecked():
             y_t[0] = 3
-        inc = 0.0001
+        inc = 0.001
         iterations = int(int(self.lengthEdit.text())/inc)
         print self.forcingFunctionText
         #print iterations
@@ -466,19 +466,25 @@ class MainGUI(QtGui.QMainWindow):
             forcingFunction = self.getForcingVal(t_t[i-1]) if self.direction == 'X' else (self.getForcingVal(t_t[i-1]) - 9.81*m)
             """
             Here's my attempt at Midpoint, didn't help much if at all
+=======
+        for i in range(1, iterations+1):
+            forcingFunction = self.getForcingVal(t_t[i-1], fNum) if self.direction == 'X' else (self.getForcingVal(t_t[i-1], fNum) - 9.81*m)
+
+            # Midpoint Method
             k1y = z[i-1]
             k1z = (forcingFunction - b*z[i-1] - k*y_t[i-1])/m
             forcingFunctionInc = self.getForcingVal(t_t[i-1]+0.5*inc, fNum) if self.direction == 'X' else (self.getForcingVal(t_t[i-1]+0.5*inc, fNum) - 9.81*m)
-            k2y = z[i-1]+0.5*k1y*inc
-            k2z = (forcingFunctionInc - b*(z[i-1]+0.5*k1z*inc) - k*(y_t[i-1]+0.5*k1z*inc))/m
+            k2y = z[i-1]+0.5*k1z*inc
+            k2z = (forcingFunctionInc - b*(z[i-1]+0.5*k1z*inc) - k*(y_t[i-1]+0.5*k1y*inc))/m
             y_t.append(y_t[i-1] + k2y*inc)
             z.append(z[i-1] + k2z*inc)
             t_t.append(t_t[i-1]+inc)
             """
+            # Euler method
             t_t.append(t_t[i-1]+inc)
             y_t.append(y_t[i-1] + z[i-1]*inc)
             z.append(z[i-1] + (forcingFunction/m - (b/m)*z[i-1] - (k/m)*y_t[i-1])*inc)
-
+            """
         ax = self.fig.add_subplot(111)
         ax.clear()
         ax.plot(t_t, y_t)

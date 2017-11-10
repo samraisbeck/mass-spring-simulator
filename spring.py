@@ -3,6 +3,7 @@ import pygame
 import sys, os
 import numpy as np
 import fourFn
+import matplotlib.pyplot as plt
 WIDTH = 1300
 HEIGHT = 1000
 pygame.init()
@@ -35,7 +36,7 @@ class MassSpring(object):
         self.y0 = initPos
         self.dy0 = 0 # Initial velocity will always be 0
         self.t0 = 0
-        self.inc = 0.0001
+        self.inc = 0.001
         self.maxInitPos = 5
         self.distanceTexts = []
         self.ODEstring = ''
@@ -74,7 +75,7 @@ class MassSpring(object):
         since the math takes less than half a second to complete...but it's
         a little messy.
         Watch this to understand Euler's method: https://www.youtube.com/watch?v=k2V2UYr6lYw"""
-        sampleRate = 100 # only sample 100 points.
+        sampleRate = 10 # only sample 100 points.
         self.y = np.array([0])
         y_t = [] # temp y
         self.y[0] = self.y0
@@ -88,24 +89,45 @@ class MassSpring(object):
         for i in range(1, iterations+1): # iterations + 1 allows simmulaiton to update displayed time to the proper final value
             # If spring is oscillating in the y direction, subtract gravity as a forcing function
             forcingFunction = self.getForcingVal(t_t[i-1]) if self.direction == 'X' else (self.getForcingVal(t_t[i-1]) - 9.81*self.m)
+
+            # Midpoint Method
+            k1y = z[i-1]
+            k1z = (forcingFunction - self.b*z[i-1] - self.k*y_t[i-1])/self.m
+            forcingFunctionInc = self.getForcingVal(t_t[i-1]+0.5*self.inc) if self.direction == 'X' else (self.getForcingVal(t_t[i-1]+0.5*self.inc) - 9.81*self.m)
+            k2y = z[i-1]+0.5*k1z*self.inc
+            k2z = (forcingFunctionInc - self.b*(z[i-1]+0.5*k1z*self.inc) - self.k*(y_t[i-1]+0.5*k1y*self.inc))/self.m
+            y_t.append(y_t[i-1] + k2y*self.inc)
+            z.append(z[i-1] + k2z*self.inc)
+            t_t.append(t_t[i-1]+self.inc)
+            """
+            # Euler method
             t_t.append(t_t[i-1]+self.inc)
             y_t.append(y_t[i-1] + z[i-1]*self.inc)
             z.append(z[i-1] + (forcingFunction/self.m - (self.b/self.m)*z[i-1] - (self.k/self.m)*y_t[i-1])*self.inc)
+            """
             if i%sampleRate == 0:
                 # sample every 100th point
                 self.t = np.append(self.t, t_t[i])
                 self.y = np.append(self.y, y_t[i])
 
     def analytical(self, iterations=100000):
+        data = open('errorData.txt', 'w')
         yAct = np.zeros(iterations)
         tAct = np.zeros(iterations)
         tAct[0] = 0
         yAct[0] = self.y0
+        sampleRate = 10
+
         for i in range(1, iterations):
             tAct[i] = tAct[i-1]+self.inc
-            yAct[i] = np.exp(-2.5*tAct[i])*(2*np.cos(9.682*tAct[i]) + 0.5164*np.sin(9.682*tAct[i]))
-        # plt.plot(self.t, self.y) show the plots
-        # plt.show()
+            #yAct[i] = np.exp(-(1/3.0)*tAct[i])*(2*np.cos((math.sqrt(29)/3)*tAct[i]) + (2/math.sqrt(29))*np.sin((math.sqrt(29)/3)*tAct[i])) # test1
+            yAct[i] = 2*np.cos((math.sqrt(1300)/math.sqrt(3))*tAct[i]) # test2
+            if i%sampleRate==0:
+                data.write(str(round(100*abs(yAct[i]-self.y[i/sampleRate])/abs(yAct[i]), 6))+'\n')
+        data.close()
+
+        plt.plot(self.t, self.y, tAct, yAct) # show the plots
+        plt.show()
 
     def renderText(self, text, size, color = (0,0,0), fontStr = 'arialblack'):
         """Takes in text, font size, color (RGB tuple), font name (string) and
@@ -279,7 +301,7 @@ if __name__ == '__main__':
                                lengthOfSim)
     MassSpringSim.euler(int(MassSpringSim.length/MassSpringSim.inc))
     MassSpringSim.renderStaticTexts()
-    #MassSpringSim.analytical()
+    MassSpringSim.analytical(int(MassSpringSim.length/MassSpringSim.inc))
     run = True
     while True:
         if run == False:
