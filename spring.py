@@ -35,7 +35,7 @@ class MassSpring(object):
         self.y0 = initPos
         self.dy0 = 0 # Initial velocity will always be 0
         self.t0 = 0
-        self.inc = 0.001
+        self.inc = 0.0005
         self.maxInitPos = 5
         self.distanceTexts = []
         self.ODEstring = ''
@@ -74,7 +74,7 @@ class MassSpring(object):
         since the math takes less than half a second to complete...but it's
         a little messy.
         Watch this to understand Euler's method: https://www.youtube.com/watch?v=k2V2UYr6lYw"""
-        sampleRate = 10 # only sample 100 points.
+        sampleRate = iterations/1000 # only sample every 1000 points.
         self.y = np.array([0]) # Position array to display on the screen
         y_t = [] # Temporary position array (contains EVERY point)
         self.y[0] = self.y0
@@ -117,12 +117,12 @@ class MassSpring(object):
         tAct = np.zeros(iterations)
         tAct[0] = 0
         yAct[0] = self.y0
-        sampleRate = 10
+        sampleRate = iterations/1000
 
         for i in range(1, iterations):
             tAct[i] = tAct[i-1]+self.inc
-            #yAct[i] = np.exp(-(1/3.0)*tAct[i])*(2*np.cos((math.sqrt(29)/3)*tAct[i]) + (2/math.sqrt(29))*np.sin((math.sqrt(29)/3)*tAct[i])) # test1
-            yAct[i] = 2*np.cos((sqrt(1300)/sqrt(3))*tAct[i]) # test2
+            yAct[i] = np.exp(-(1/3.0)*tAct[i])*(2*np.cos((sqrt(29)/3)*tAct[i]) + (2/sqrt(29))*np.sin((sqrt(29)/3)*tAct[i])) # test1
+            #yAct[i] = 2*np.cos((sqrt(1300)/sqrt(3))*tAct[i]) # test2
             if i%sampleRate==0:
                 data.write(str(round(100*abs(yAct[i]-self.y[i/sampleRate])/abs(yAct[i]), 6))+'\n')
         data.close()
@@ -235,7 +235,7 @@ class MassSpring(object):
                     startPos = HEIGHT/2
                     for j in range(len(self.springs[i])):
                         perc = (1/self.springs[i][j])/Sum
-                        pygame.draw.line(self.window, (abs(math.cos(j*(math.pi/2)))*255,0,150), (((-1)**i*(i*10))+WIDTH/2, startPos), (((-1)**i*(i*10))+WIDTH/2, startPos + perc*dist), 5)
+                        pygame.draw.line(self.window, (abs(cos(j*(pi/2)))*255,0,150), (((-1)**i*(i*10))+WIDTH/2, startPos), (((-1)**i*(i*10))+WIDTH/2, startPos + perc*dist), 5)
                         startPos += perc*dist
                 else:
                     pygame.draw.line(self.window, (255,0,150), ((-1)**i*(i*10)+WIDTH/2, HEIGHT/2), (((-1)**i*(i*10))+WIDTH/2, self.blockY+self.blockH/2), 5)

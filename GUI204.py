@@ -29,6 +29,7 @@ To do:
 class MainGUI(QtGui.QMainWindow):
     def __init__(self):
         super(MainGUI, self).__init__()
+        self.setStyleSheet("background-color: lightblue")
         self._initUI()
         self.springArgs = []
         self.mass = 0
@@ -42,18 +43,18 @@ class MainGUI(QtGui.QMainWindow):
         grid = QtGui.QGridLayout()
         grid.addLayout(self._UISprings(), 0, 0)
         # Other paramaters section (mass, damping, etc...) #
-        grid.addLayout(self._UIMass(), 1, 0)
-        grid.addLayout(self._UIDamping(), 2, 0)
-        grid.addLayout(self._UIForcingOptions(), 3, 0)
-        grid.addLayout(self._UIInitPosAndSpeed(), 4, 0)
+        grid.addLayout(self._UIMassDamping(), 1, 0)
+        grid.addLayout(self._UIForcingOptions(), 2, 0)
+        grid.addLayout(self._UIInitPosAndSpeed(), 3, 0)
         # Plot section #
         self.canvas = self._UISetupPlot()
-        grid.addWidget(self.canvas, 5, 0)
+        grid.addWidget(self.canvas, 4, 0)
         # Main controls #
-        grid.addLayout(self._UIMainControls(), 6, 0)
+        grid.addLayout(self._UIMainControls(), 5, 0)
         Qw = QtGui.QWidget()
         Qw.setLayout(grid)
         self.setCentralWidget(Qw)
+        self.setWindowTitle('Mass-Spring Simulator')
         self.show()
 
     def _UISprings(self):
@@ -73,6 +74,7 @@ class MainGUI(QtGui.QMainWindow):
         vbox = QtGui.QVBoxLayout()
         hbox2 = QtGui.QHBoxLayout()
         self.springsEdit = QtGui.QLineEdit()
+        self.springsEdit.setStyleSheet('background-color: white')
         self.springsEdit.setPlaceholderText('Add series or parallel springs...')
         self.springsEdit.setToolTip('Series example: 100 200 35 ... Parallel example: 150')
         hbox2.addWidget(self.springsEdit)
@@ -91,56 +93,63 @@ class MainGUI(QtGui.QMainWindow):
         hbox.addLayout(vbox)
         return hbox
 
-    def _UIMass(self):
-        hbox = QtGui.QHBoxLayout()
-        labelMass = QtGui.QLabel('Mass: ', parent=self)
-        self.massEdit = QtGui.QLineEdit()
-        self.massEdit.setText('1')
-        hbox.addWidget(labelMass)
-        hbox.addWidget(self.massEdit)
-        return hbox
-
-    def _UIDamping(self):
-        hbox = QtGui.QHBoxLayout()
-        labelDamping = QtGui.QLabel('Damping: ', parent=self)
-        self.dampingEdit = QtGui.QLineEdit()
-        self.dampingEdit.setText('0')
-        hbox.addWidget(labelDamping)
-        hbox.addWidget(self.dampingEdit)
-        return hbox
-
-    def _UIForcingOptions(self):
-        hbox = QtGui.QHBoxLayout()
-        vbox = QtGui.QVBoxLayout()
-        leftGroupbox = QtGui.QGroupBox()
-        leftInnerHBox = QtGui.QHBoxLayout()
-
+    def _UIMassDamping(self):
+        groupbox = QtGui.QGroupBox()
+        ultHBox = QtGui.QHBoxLayout()
         self.direction="X"
         self.horizontalDirection = QtGui.QRadioButton('Horizontal Spring', parent=self)
         self.horizontalDirection.setChecked(True)
         self.horizontalDirection.clicked.connect(self.setHorizontal)
         self.verticalDirection = QtGui.QRadioButton('Vertical Spring', parent=self)
         self.verticalDirection.clicked.connect(self.setVertical)
+        vbox = QtGui.QVBoxLayout()
+        vbox.addWidget(self.horizontalDirection)
+        vbox.addWidget(self.verticalDirection)
+        groupbox.setLayout(vbox)
+        groupbox.setContentsMargins(0,0,0,0)
+        ultHBox.addWidget(groupbox)
 
-        leftInnerHBox.addWidget(self.horizontalDirection)
-        leftInnerHBox.addWidget(self.verticalDirection)
-        leftGroupbox.setLayout(leftInnerHBox)
-        leftGroupbox.setContentsMargins(0,0,0,0)
-        vbox.addWidget(leftGroupbox)
+        vbox = QtGui.QVBoxLayout()
+        inHbox = QtGui.QHBoxLayout()
+        labelMass = QtGui.QLabel('Mass: ', parent=self)
+        self.massEdit = QtGui.QLineEdit()
+        self.massEdit.setStyleSheet('background-color: white')
+        self.massEdit.setText('1')
+        inHbox.addWidget(labelMass)
+        inHbox.addWidget(self.massEdit)
+        vbox.addLayout(inHbox)
+        inHbox = QtGui.QHBoxLayout()
+        labelDamping = QtGui.QLabel('Damping: ', parent=self)
+        self.dampingEdit = QtGui.QLineEdit()
+        self.dampingEdit.setStyleSheet('background-color: white')
+        self.dampingEdit.setText('0')
+        inHbox.addWidget(labelDamping)
+        inHbox.addWidget(self.dampingEdit)
+        vbox.addLayout(inHbox)
+
+        ultHBox.addLayout(vbox)
+
+        return ultHBox
+
+    def _UIForcingOptions(self):
+        ultHBox = QtGui.QHBoxLayout()
+        hbox = QtGui.QHBoxLayout()
+        vbox = QtGui.QVBoxLayout()
+        leftInnerHBox = QtGui.QHBoxLayout()
 
         self.forcingFunctionText = "0"
-        labelForcing = QtGui.QLabel('Forcing Function in terms of t: ', parent=self)
+        labelForcing = QtGui.QLabel('Forcing Function f(t): ', parent=self)
         self.forcingField = QtGui.QLineEdit()
-        self.forcingField.setPlaceholderText('Add forcing function (in terms of t)...')
-        forcingSubmit = QtGui.QPushButton('Set forcing function', parent=self)
+        self.forcingField.setStyleSheet('background-color: white')
+        self.forcingField.setPlaceholderText('Add forcing function in terms of t...')
+        forcingSubmit = QtGui.QPushButton('Set Forcing Function', parent=self)
         forcingSubmit.clicked.connect(self.setForcingFunction)
-        self.forcingFunctionLabel = QtGui.QLabel('Forcing Function: ', parent=self)
-
-        hbox.addWidget(labelForcing, 0, QtCore.Qt.AlignRight)
-        hbox.addWidget(self.forcingField)
-        hbox.addWidget(forcingSubmit)
-        hbox.addWidget(self.forcingFunctionLabel)
-
+        self.forcingFunctionLabel = QtGui.QLabel('f(t) = 0', parent=self)
+        leftInnerHBox.addWidget(labelForcing, 0, QtCore.Qt.AlignRight)
+        leftInnerHBox.addWidget(self.forcingField)
+        leftInnerHBox.addWidget(forcingSubmit)
+        leftInnerHBox.addWidget(self.forcingFunctionLabel)
+        ultHBox.addLayout(leftInnerHBox)
 
         groupbox = QtGui.QGroupBox()
         innerHBox = QtGui.QHBoxLayout()
@@ -158,28 +167,27 @@ class MainGUI(QtGui.QMainWindow):
         innerHBox.addWidget(self.antiResonanceCheck)
         groupbox.setLayout(innerHBox)
         groupbox.setContentsMargins(0,0,0,0)
-        hbox.addWidget(groupbox)
-        button = QtGui.QPushButton("What's this doing?", parent=self)
-        button.clicked.connect(self.resonanceHelp)
-        hbox.addWidget(button)
-        vbox.addLayout(hbox)
-        return vbox
+        ultHBox.addWidget(groupbox)
+        return ultHBox
 
     def _UIInitPosAndSpeed(self):
         hbox = QtGui.QHBoxLayout()
         label = QtGui.QLabel('Initial Position (-5 to 5 meters): ', parent=self)
         self.initPosEdit = QtGui.QLineEdit()
+        self.initPosEdit.setStyleSheet('background-color: white')
         self.initPosEdit.setText('2')
         hbox.addWidget(label)
         hbox.addWidget(self.initPosEdit)
         label = QtGui.QLabel('Speed of Simulation (1 to 150%): ', parent=self)
         self.speedPercentEdit = QtGui.QLineEdit()
+        self.speedPercentEdit.setStyleSheet('background-color: white')
         self.speedPercentEdit.setText('100')
         self.speedPercentEdit.setToolTip('100 is full speed, 50 is half speed, etc...')
         hbox.addWidget(label)
         hbox.addWidget(self.speedPercentEdit)
         label = QtGui.QLabel('Length of Simulation (0 to 20s): ', parent=self)
         self.lengthEdit = QtGui.QLineEdit()
+        self.lengthEdit.setStyleSheet('background-color: white')
         self.lengthEdit.setText('10')
         hbox.addWidget(label)
         hbox.addWidget(self.lengthEdit)
@@ -199,9 +207,11 @@ class MainGUI(QtGui.QMainWindow):
         hbox = QtGui.QHBoxLayout()
         button = QtGui.QPushButton('Plot', parent=self)
         button.clicked.connect(self.plotData)
+        button.setStyleSheet("font: bold; background-color: lightgreen")
         hbox.addWidget(button)
         button = QtGui.QPushButton('Launch Simulator', parent=self)
         button.clicked.connect(self.launchSimulator)
+        button.setStyleSheet("font: bold; background-color: lightgreen")
         hbox.addWidget(button)
         return hbox
 
@@ -209,9 +219,11 @@ class MainGUI(QtGui.QMainWindow):
 
 
     def setForcingFunction(self):
+        if self.forcingField.text() == '':
+            self.forcingField.setText('0')
         self.setForcingFunctionText = "0"
         initialForcingFunction = self.forcingField.text().lower()
-        print initialForcingFunction
+        #print initialForcingFunction
         initialForcingFunction.replace(" ", "") # Gets rid of spaces (makes checks easier)
 
         #convert to python syntax
@@ -231,7 +243,7 @@ class MainGUI(QtGui.QMainWindow):
                                   't, and that there are no mistakes in your expression ', parent=self)
             self.forcingFunctionText = "0"
             box.exec_()
-        self.forcingFunctionLabel.setText('Forcing Function: ' + self.forcingFunctionText)
+        self.forcingFunctionLabel.setText('f(t) = ' + self.forcingFunctionText)
 
 
     def addSprings(self):
@@ -316,7 +328,7 @@ class MainGUI(QtGui.QMainWindow):
 
     def reEnableForcingMenu(self):
         self.forcingField.setEnabled(True)
-        doNothing = 2
+        self.setForcingFunction()
 
     def deleteLastSpring(self):
         """Deletes the last spring entered. If it's a series spring, deletes
@@ -390,7 +402,6 @@ class MainGUI(QtGui.QMainWindow):
             massArg = 'M2'
             dampingArg = 'D0'
             springArg = ['SP8']
-            funcNumArg = 'FN0'
             initPosArg = 'IP-3'
         if self.antiResonanceCheck.isChecked():
             initPosArg = 'IP3'
@@ -441,9 +452,8 @@ class MainGUI(QtGui.QMainWindow):
             y_t[0] = -3
         if self.antiResonanceCheck.isChecked():
             y_t[0] = 3
-        inc = 0.001
+        inc = 0.0005
         iterations = int(int(self.lengthEdit.text())/inc)
-        print self.forcingFunctionText
         #print iterations
         for i in range(1, iterations):
             forcingFunction = self.getForcingVal(t_t[i-1]) if self.direction == 'X' else (self.getForcingVal(t_t[i-1]) - 9.81*m)
