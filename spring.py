@@ -75,35 +75,36 @@ class MassSpring(object):
         a little messy.
         Watch this to understand Euler's method: https://www.youtube.com/watch?v=k2V2UYr6lYw"""
         sampleRate = 10 # only sample 100 points.
-        self.y = np.array([0])
-        y_t = [] # temp y
+        self.y = np.array([0]) # Position array to display on the screen
+        y_t = [] # Temporary position array (contains EVERY point)
         self.y[0] = self.y0
         y_t.append(self.y0)
-        self.t = np.array([0])
-        t_t = [] # temp t
+        self.t = np.array([0]) # Time array to display on the screen
+        t_t = [] # temp time array (contains EVERY point)
         self.t[0] = self.t0
         t_t.append(self.t0)
-        z = []
-        z.append(self.dy0) # z = dy/dx for Euler method
-        #self.forcingFunction = self.forcingFunction.replace("t", "time")
+        v = [] # velocity array
+        v.append(self.dy0)
         for i in range(1, iterations+1): # iterations + 1 allows simmulaiton to update displayed time to the proper final value
-            # If spring is oscillating in the y direction, subtract gravity as a forcing function
-            forcingFunction = self.getForcingVal(t_t[i-1]) if self.direction == 'X' else (self.getForcingVal(t_t[i-1]) - 9.81*self.m)
-
             # Midpoint Method
-            k1y = z[i-1]
-            k1z = (forcingFunction - self.b*z[i-1] - self.k*y_t[i-1])/self.m
-            forcingFunctionInc = self.getForcingVal(t_t[i-1]+0.5*self.inc) if self.direction == 'X' else (self.getForcingVal(t_t[i-1]+0.5*self.inc) - 9.81*self.m)
-            k2y = z[i-1]+0.5*k1z*self.inc
-            k2z = (forcingFunctionInc - self.b*(z[i-1]+0.5*k1z*self.inc) - self.k*(y_t[i-1]+0.5*k1y*self.inc))/self.m
-            y_t.append(y_t[i-1] + k2y*self.inc)
-            z.append(z[i-1] + k2z*self.inc)
-            t_t.append(t_t[i-1]+self.inc)
+            # If spring is oscillating in the y direction, subtract gravity as a forcing function
+            forcingFunction = self.getForcingVal(t_t[i-1]) if self.direction == 'X' \
+                              else (self.getForcingVal(t_t[i-1]) - 9.81*self.m)
+            k1y = v[i-1] # k1y is dy/dt
+            k1v = (forcingFunction - self.b*v[i-1] - self.k*y_t[i-1])/self.m #k1v is dv/dt
+            forcingFunctionInc = self.getForcingVal(t_t[i-1]+0.5*self.inc) if self.direction == 'X' \
+                                 else (self.getForcingVal(t_t[i-1]+0.5*self.inc) - 9.81*self.m)
+            k2y = v[i-1]+0.5*k1v*self.inc # k2y is dy/dt at the midpoint
+            k2v = (forcingFunctionInc - self.b*(v[i-1]+0.5*k1v*self.inc) - \
+                  self.k*(y_t[i-1]+0.5*k1y*self.inc))/self.m # k2v is dv/dt at midpoint
+            y_t.append(y_t[i-1] + k2y*self.inc) # use k2y to approximate y(t+dt)
+            v.append(v[i-1] + k2v*self.inc) # use k2v to approximate v(t+dt)
+            t_t.append(t_t[i-1]+self.inc) # increment the timestep
             """
             # Euler method
             t_t.append(t_t[i-1]+self.inc)
-            y_t.append(y_t[i-1] + z[i-1]*self.inc)
-            z.append(z[i-1] + (forcingFunction/self.m - (self.b/self.m)*z[i-1] - (self.k/self.m)*y_t[i-1])*self.inc)
+            y_t.append(y_t[i-1] + v[i-1]*self.inc)
+            v.append(v[i-1] + (forcingFunction/self.m - (self.b/self.m)*v[i-1] - (self.k/self.m)*y_t[i-1])*self.inc)
             """
             if i%sampleRate == 0:
                 # sample every 100th point

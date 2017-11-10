@@ -425,8 +425,8 @@ class MainGUI(QtGui.QMainWindow):
         y_t.append(float(self.initPosEdit.text()))
         t_t = [] # temp t
         t_t.append(0)
-        z = []
-        z.append(0) # z = dy/dx for Euler method
+        v = []
+        v.append(0) # v = dy/dx for Euler method
         # gotta be floats for the math
         b = float(self.dampingEdit.text())
         m = float(self.massEdit.text())
@@ -447,21 +447,21 @@ class MainGUI(QtGui.QMainWindow):
         #print iterations
         for i in range(1, iterations):
             forcingFunction = self.getForcingVal(t_t[i-1]) if self.direction == 'X' else (self.getForcingVal(t_t[i-1]) - 9.81*m)
-            
+
             # Midpoint Method
-            k1y = z[i-1]
-            k1z = (forcingFunction - b*z[i-1] - k*y_t[i-1])/m
+            k1y = v[i-1]
+            k1v = (forcingFunction - b*v[i-1] - k*y_t[i-1])/m
             forcingFunctionInc = self.getForcingVal(t_t[i-1]+0.5*inc) if self.direction == 'X' else (self.getForcingVal(t_t[i-1]+0.5*inc) - 9.81*m)
-            k2y = z[i-1]+0.5*k1z*inc
-            k2z = (forcingFunctionInc - b*(z[i-1]+0.5*k1z*inc) - k*(y_t[i-1]+0.5*k1y*inc))/m
+            k2y = v[i-1]+0.5*k1v*inc
+            k2v = (forcingFunctionInc - b*(v[i-1]+0.5*k1v*inc) - k*(y_t[i-1]+0.5*k1y*inc))/m
             y_t.append(y_t[i-1] + k2y*inc)
-            z.append(z[i-1] + k2z*inc)
+            v.append(v[i-1] + k2v*inc)
             t_t.append(t_t[i-1]+inc)
             """
             # Euler method
             t_t.append(t_t[i-1]+inc)
-            y_t.append(y_t[i-1] + z[i-1]*inc)
-            z.append(z[i-1] + (forcingFunction/m - (b/m)*z[i-1] - (k/m)*y_t[i-1])*inc)
+            y_t.append(y_t[i-1] + v[i-1]*inc)
+            v.append(v[i-1] + (forcingFunction/m - (b/m)*v[i-1] - (k/m)*y_t[i-1])*inc)
             """
         ax = self.fig.add_subplot(111)
         ax.clear()
@@ -490,6 +490,3 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     mw = MainGUI()
     app.exec_()
-    
-    
-
