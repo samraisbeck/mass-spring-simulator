@@ -217,9 +217,9 @@ class MainGUI(QtGui.QMainWindow):
         initialForcingFunction.replace(" ", "") # Gets rid of spaces (makes checks easier)
 
         #convert to python syntax
-        newForcingFunction = re.sub(r'\^', "**", initialForcingFunction)
-        newForcingFunction = re.sub(r'(e\^)([t0-9]+\b)', r'exp(\2)', newForcingFunction)
+        newForcingFunction = re.sub(r'(e\^)([t0-9]+\b)', r'exp(\2)', initialForcingFunction)
         newForcingFunction = re.sub(r'(e\^)(-)([t0-9]+\b)', r'exp(\2\3)', newForcingFunction)
+        newForcingFunction = re.sub(r'\^', "**", newForcingFunction)
         newForcingFunction = re.sub(r'(\d)([a-zA-Z\(])', r'\1*\2', newForcingFunction)
         newForcingFunction = re.sub(r'([a-zA-Z\)])(\d)', r'\1*\2', newForcingFunction)
 
