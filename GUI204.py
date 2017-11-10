@@ -416,7 +416,7 @@ class MainGUI(QtGui.QMainWindow):
             fNum = 0
         if self.antiResonanceCheck.isChecked():
             y_t[0] = 3
-        inc = 0.0001
+        inc = 0.001
         iterations = int(int(self.lengthEdit.text())/inc)
         for i in range(1, iterations+1):
             forcingFunction = self.getForcingVal(t_t[i-1], fNum) if self.direction == 'X' else (self.getForcingVal(t_t[i-1], fNum) - 9.81*m)

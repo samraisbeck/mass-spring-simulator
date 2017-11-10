@@ -35,7 +35,7 @@ class MassSpring(object):
         self.y0 = initPos
         self.dy0 = 0 # Initial velocity will always be 0
         self.t0 = 0
-        self.inc = 0.0001
+        self.inc = 0.001
         self.maxInitPos = 5
         self.distanceTexts = []
         self.ODEstring = ''
@@ -84,7 +84,7 @@ class MassSpring(object):
         since the math takes less than half a second to complete...but it's
         a little messy.
         Watch this to understand Euler's method: https://www.youtube.com/watch?v=k2V2UYr6lYw"""
-        sampleRate = 100 # only sample 100 points.
+        sampleRate = 10 # only sample 100 points.
         self.y = np.array([0])
         y_t = [] # temp y
         self.y[0] = self.y0
@@ -124,7 +124,7 @@ class MassSpring(object):
         tAct = np.zeros(iterations)
         tAct[0] = 0
         yAct[0] = self.y0
-        sampleRate = 100
+        sampleRate = 10
 
         for i in range(1, iterations):
             tAct[i] = tAct[i-1]+self.inc
@@ -309,7 +309,7 @@ if __name__ == '__main__':
                                lengthOfSim)
     MassSpringSim.euler(int(MassSpringSim.length/MassSpringSim.inc))
     MassSpringSim.renderStaticTexts()
-    MassSpringSim.analytical()
+    MassSpringSim.analytical(int(MassSpringSim.length/MassSpringSim.inc))
     run = True
     while True:
         if run == False:
