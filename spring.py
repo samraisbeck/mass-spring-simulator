@@ -1,4 +1,4 @@
-import math
+from math import cos, sin, tan, exp, sqrt, pi
 import pygame
 import sys, os
 import numpy as np
@@ -41,7 +41,7 @@ class MassSpring(object):
         self.distanceTexts = []
         self.ODEstring = ''
         self.forcingStrings = ['sin(2t)', '0', '10', 't', 't^2', 'sin(t)', 'exp(t)']
-        self.forcingFunction = fNum
+        self.forcingFunction = forcingFunction
         self.direction = direction
         self.checkTimes = [0, 0, 0]
         self.length = lengthOfSim
@@ -64,8 +64,8 @@ class MassSpring(object):
             function value here (fNum will indicate which function we need)."""
 
         # Using external code to evaluate the forcing function at each time interval
-        function = self.forcingFunction.replace("t", str(time))
-        return fourFn.parseData(function);
+        
+        return eval(self.forcingFunction);
 
     def euler(self, iterations = 100000):
         """Unfortunately, right now we need to calculate the approximation when
@@ -86,6 +86,7 @@ class MassSpring(object):
         t_t.append(self.t0)
         z = []
         z.append(self.dy0) # z = dy/dx for Euler method
+        self.forcingFunction = self.forcingFunction.replace("t", "time")
         for i in range(1, iterations+1): # iterations + 1 allows simmulaiton to update displayed time to the proper final value
             # If spring is oscillating in the y direction, subtract gravity as a forcing function
             forcingFunction = self.getForcingVal(t_t[i-1]) if self.direction == 'X' else (self.getForcingVal(t_t[i-1]) - 9.81*self.m)
@@ -121,7 +122,7 @@ class MassSpring(object):
         for i in range(1, iterations):
             tAct[i] = tAct[i-1]+self.inc
             #yAct[i] = np.exp(-(1/3.0)*tAct[i])*(2*np.cos((math.sqrt(29)/3)*tAct[i]) + (2/math.sqrt(29))*np.sin((math.sqrt(29)/3)*tAct[i])) # test1
-            yAct[i] = 2*np.cos((math.sqrt(1300)/math.sqrt(3))*tAct[i]) # test2
+            yAct[i] = 2*np.cos((sqrt(1300)/sqrt(3))*tAct[i]) # test2
             if i%sampleRate==0:
                 data.write(str(round(100*abs(yAct[i]-self.y[i/sampleRate])/abs(yAct[i]), 6))+'\n')
         data.close()
@@ -201,7 +202,7 @@ class MassSpring(object):
                     startPos = WIDTH/2
                     for j in range(len(self.springs[i])):
                         perc = (1/self.springs[i][j])/Sum
-                        pygame.draw.line(self.window, (abs(math.cos(j*(math.pi/2)))*255,0,150), (startPos, ((-1)**i*(i*10))+HEIGHT/2), (startPos + perc*dist, ((-1)**i*(i*10))+HEIGHT/2), 5)
+                        pygame.draw.line(self.window, (abs(cos(j*(pi/2)))*255,0,150), (startPos, ((-1)**i*(i*10))+HEIGHT/2), (startPos + perc*dist, ((-1)**i*(i*10))+HEIGHT/2), 5)
                         startPos += perc*dist
                 else:
                     pygame.draw.line(self.window, (255,0,150), (WIDTH/2, ((-1)**i*(i*10))+HEIGHT/2), (self.blockX+self.blockW/2, ((-1)**i*(i*10))+HEIGHT/2), 5)

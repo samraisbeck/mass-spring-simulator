@@ -10,7 +10,7 @@ import re
 matplotlib.use('Qt4Agg')
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-import math
+from math import cos, sin, tan, exp, pi, sqrt
 
 import fourFn
 
@@ -212,42 +212,28 @@ class MainGUI(QtGui.QMainWindow):
 
     def setForcingFunction(self):
         self.setForcingFunctionText = "0"
-        initialForcingFunction = self.forcingField.text()
+        initialForcingFunction = self.forcingField.text().lower()
+        print initialForcingFunction
         initialForcingFunction.replace(" ", "") # Gets rid of spaces (makes checks easier)
 
-        # Substitutes acceptable disallowed strings (like function calls) with constants
-        # and replaces unacceptable formatting with disallowed strings
-        temp = re.sub(r'[0-9]\.[0-9]', '1', initialForcingFunction)
-        temp = re.sub(r'cos', '1', temp)
-        temp = re.sub(r'sin', '1', temp)
-        temp = re.sub(r'tan', '1', temp)
-        temp = re.sub(r'e', '1', temp)
-        temp = re.sub(r't', '1', temp)
-        temp = re.sub(r'(?i)pi', '1', temp)
-        temp = re.sub(r'[-+*/][-+*/]', 'NOT GOOD', temp)
-        temp = re.sub(r'^[-+*/]', 'NOT GOOD', temp)
-        # TODO check for operator at the end of the string
+        #convert to python syntax
+        newForcingFunction = re.sub(r'\^', "**", initialForcingFunction)
+        newForcingFunction = re.sub(r'(e\^)([t0-9]+\b)', r'exp(\2)', newForcingFunction)
+        newForcingFunction = re.sub(r'(e\^)(-)([t0-9]+\b)', r'exp(\2\3)', newForcingFunction)
+        newForcingFunction = re.sub(r'(\d)([a-zA-Z\(])', r'\1*\2', newForcingFunction)
+        newForcingFunction = re.sub(r'([a-zA-Z\)])(\d)', r'\1*\2', newForcingFunction)
 
-        # Checks to see if modified string has any disallowed characters
-        unacceptableCharacters = re.search(r'[a-zA-Z\.]', temp)
-
-        if unacceptableCharacters == None: 
-            # Means entered expression is valid, can store it
-            # First need to modify it into an evaluation friendly expression
-            initialForcingFunction = re.sub(r'(?<=[0-9])t', '*t', initialForcingFunction)
-            initialForcingFunction = re.sub(r't(?<=[0-9])', 't*', initialForcingFunction)
-            self.forcingFunctionText = initialForcingFunction
-            self.forcingFunctionLabel.setText('Forcing Function: '+self.forcingFunctionText)
-        else:
-            # Expression entered was invalid, clear field and put up error message
+        try:
+            t = 0.01
+            self.forcingFunctionText = newForcingFunction
+            eval(newForcingFunction)
+        except:
             box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Invalid expression '\
                                   'was entered. Check to make sure there are no variables other than '\
                                   't, and that there are no mistakes in your expression ', parent=self)
+            self.forcingFunctionText = "0"
             box.exec_()
         self.forcingFunctionLabel.setText('Forcing Function: ' + self.forcingFunctionText)
-        return
-
-
 
 
     def addSprings(self):
@@ -422,7 +408,7 @@ class MainGUI(QtGui.QMainWindow):
         function = self.forcingFunctionText.replace("t", str(time))
 
         # Using external code to evaluate the forcing function at each time interval
-        return fourFn.parseData(function);
+        return eval (function);
 
     def plotData(self):
         """Unfortunately, right now we need to calculate the approximation when
