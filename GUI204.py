@@ -398,7 +398,7 @@ class MainGUI(QtGui.QMainWindow):
         except:
             box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Your parameters '\
                               'are incorrect, check them. Most likely you entered something '\
-                              'other than a number.', parent=self)
+                              'other than a number. Also, length of simulation has to be a whole number.', parent=self)
             box.exec_()
             return
         # END ERROR CHECKING ############
@@ -455,10 +455,20 @@ class MainGUI(QtGui.QMainWindow):
                                   'enter at least one spring stiffness.', parent=self)
                 box.exec_()
                 return
+            elif float(self.initPosEdit.text()) < -5 or float(self.initPosEdit.text()) > 5:
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Initial position '\
+                                  'must be between -5 and 5 meters', parent=self)
+                box.exec_()
+                return
+            elif int(self.lengthEdit.text()) <= 0 or int(self.lengthEdit.text()) > 20:
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Length of  '\
+                                  'simulation must be greater than 0s but no more than 20s', parent=self)
+                box.exec_()
+                return
         except:
             box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Your parameters '\
                               'are incorrect, check them. Most likely you entered something '\
-                              'other than a number.', parent=self)
+                              'other than a number. Also, length of simulation has to be a whole number.', parent=self)
             box.exec_()
             return
         y_t = [] # position values
