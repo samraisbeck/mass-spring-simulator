@@ -88,7 +88,8 @@ class MassSpring(object):
         t_t.append(self.t0)
         v = [] # velocity array
         v.append(self.dy0)
-        for i in range(1, iterations+1): # iterations + 1 allows simmulaiton to update displayed time to the proper final value
+        for i in range(1, iterations+1):
+            # iterations + 1 allows simmulaiton to update displayed time to the proper final value
             # Midpoint Method
             # If spring is oscillating in the y direction, subtract gravity as a forcing function
             forcingFunction = self.getForcingVal(t_t[i-1]) if self.direction == 'X' \
