@@ -86,9 +86,11 @@ class MainGUI(QtGui.QMainWindow):
         ultHBox = QtGui.QHBoxLayout()
         self.direction="X"
         self.horizontalDirection = QtGui.QRadioButton('Horizontal System', parent=self)
+        self.horizontalDirection.setToolTip("Simulate a mass moving horizontally")
         self.horizontalDirection.setChecked(True)
         self.horizontalDirection.clicked.connect(self.setHorizontal)
         self.verticalDirection = QtGui.QRadioButton('Vertical System', parent=self)
+        self.verticalDirection.setToolTip("Simulate a hanging mass")
         self.verticalDirection.clicked.connect(self.setVertical)
         vbox = QtGui.QVBoxLayout()
         vbox.addWidget(self.horizontalDirection)
@@ -153,7 +155,9 @@ class MainGUI(QtGui.QMainWindow):
         self.doParams.setChecked(True)
         self.doParams.clicked.connect(self.reEnableForcingMenu)
         self.resonanceCheck = QtGui.QRadioButton('Show Resonance', parent=self)
+        self.resonanceCheck.setToolTip("Set up a system that demonstrates resonance")
         self.antiResonanceCheck = QtGui.QRadioButton('Show Anti-Resonance', parent=self)
+        self.antiResonanceCheck.setToolTip("Set up a system that demonstrates the opposite of resonance")
         self.resonanceCheck.clicked.connect(self.resonanceForcing)
         self.antiResonanceCheck.clicked.connect(self.resonanceForcing)
 
@@ -252,9 +256,9 @@ class MainGUI(QtGui.QMainWindow):
         box.setText("You can add a variety of forcing functions. For best results, "+\
                      "it is recommended to use an asterix (*) for any multiplication, and to use "+\
                      "brackets to be safe. "+\
-                     "An example of a function which will work is:\n3sin(3t)\nwhich is the "+\
-                     "same as 3*sin(3*t). \nA function which will not work is: tsin(2t)\n"+\
-                     "compared to t*sin(2t), which will work.\nExponentials will work too (e"+\
+                     "An example of a function which will work is 3sin(3t), which is the "+\
+                     "same as 3*sin(3*t). \n\nA function which will not work is tsin(2t), "+\
+                     "as opposed to t*sin(2t), which will work.\n\nExponentials will work too (e"+\
                      "^t, e^(-t)), and exponents (t^2, t^(3*t). This should be fairly "+\
                      "easy to use, try and use proper syntax like * and () wherever possible, and "+\
                      "you should be fine. \n\nAlso, REMEMBER to click 'Set Forcing Function' when "+\
