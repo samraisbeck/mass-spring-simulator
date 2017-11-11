@@ -386,7 +386,7 @@ class MainGUI(QtGui.QMainWindow):
             initPosArg = 'IP-3' # For resonance, init position is -3
         if self.antiResonanceCheck.isChecked():
             initPosArg = 'IP3' # for anti-resonance, init position is 3
-        args = [sys.executable, directory+'\\spring.py']+springArg+[massArg, \
+        args = [sys.executable, directory+os.sep+'spring.py']+springArg+[massArg, \
                 dampingArg, initPosArg, speedArg, funcNumArg, directionArg, lengthArg]
         Popen(args, cwd = directory) # Open the simulation window
 
