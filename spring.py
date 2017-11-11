@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 WIDTH = 1300
 HEIGHT = 700
-pygame.init()
 
 """
 This is the file that runs the simulation of the system.
@@ -21,6 +20,7 @@ class MassSpring(object):
             global HEIGHT
             HEIGHT = 600
         self.window = pygame.display.set_mode((WIDTH, HEIGHT))
+        pygame.display.set_caption("Simulation Window")
         self.window.fill((255,255,255)) # fill the window white
         self.clock = pygame.time.Clock()
         self.fps = 100*speedPercent # frames per second
@@ -93,6 +93,7 @@ class MassSpring(object):
             # If spring is oscillating in the y direction, subtract gravity as a forcing function
             forcingFunction = self.getForcingVal(t_t[i-1]) if self.direction == 'X' \
                               else (self.getForcingVal(t_t[i-1]) - 9.81*self.m)
+
             k1y = v[i-1] # k1y is dy/dt
             k1v = (forcingFunction - self.b*v[i-1] - self.k*y_t[i-1])/self.m #k1v is dv/dt
             forcingFunctionInc = self.getForcingVal(t_t[i-1]+0.5*self.inc) if self.direction == 'X' \
@@ -125,11 +126,13 @@ class MassSpring(object):
 
         for i in range(1, iterations):
             tAct[i] = tAct[i-1]+self.inc
-            yAct[i] = np.exp(-(1/3.0)*tAct[i])*(2*np.cos((sqrt(29)/3)*tAct[i]) + (2/sqrt(29))*np.sin((sqrt(29)/3)*tAct[i])) # test1
-            #yAct[i] = 2*np.cos((sqrt(1300)/sqrt(3))*tAct[i]) # test2
-            yAct[i] = (44.0/7)*cos(sqrt(2)*tAct[i])-(30.0/7)*cos(3*tAct[i])
+            #yAct[i] = 2*np.cos(tAct[i]) # num1
+            yAct[i] = (2.0/599.0*np.exp(-5*tAct[i])*(sqrt(599.0)*sin(5*sqrt(599.0)*tAct[i])+ 599.0*cos(sqrt(599.0)*tAct[i]*5))) # num2
+            #yAct[i] = np.exp(-(1/3.0)*tAct[i])*(2*np.cos((sqrt(29)/3)*tAct[i]) + (2/sqrt(29))*np.sin((sqrt(29)/3)*tAct[i])) # num3
+            #yAct[i] = 2*np.cos((sqrt(1300)/sqrt(3))*tAct[i]) # num4
+            #yAct[i] = 44/7.0*np.cos(sqrt(2)*tAct[i])-30/7.0*np.cos(3*tAct[i]) #num5
             if i%sampleRate==0:
-                data.write(str(round(100*abs(yAct[i]-self.y[i/sampleRate])/abs(yAct[i]), 6))+'\n')
+                data.write(str(round(abs(yAct[i]-self.y[i/sampleRate]), 6))+'\n')
         data.close()
 
         plt.plot(self.t, self.y, tAct, yAct) # show the plots
@@ -274,6 +277,8 @@ if __name__ == '__main__':
     It is a list of stiffnesses for each spring, and if the spring is a series
     spring, it shows up in totalSprings as a list of stiffnesses.
     """
+
+    pygame.init()
     seriesSprings = []
     parallelSprings = []
     totalSprings = []

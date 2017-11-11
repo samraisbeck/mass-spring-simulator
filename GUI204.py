@@ -359,33 +359,44 @@ class MainGUI(QtGui.QMainWindow):
         and speed of simulation to be processed in the spring.py file."""
 
         # BEGIN ERROR CHECKING ############
+        try:
 
-        if len(self.springArgs) == 0 and self.doParams.isChecked():
-            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'You must '\
-                              'enter at least one spring stiffness.', parent=self)
+            if len(self.springArgs) == 0 and self.doParams.isChecked():
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'You must '\
+                                  'enter at least one spring stiffness.', parent=self)
+                box.exec_()
+                return
+            elif abs(float(self.initPosEdit.text())) > 5 and self.doParams.isChecked():
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Initial position must '\
+                                  'be in the range of -5 to 5 meters.', parent=self)
+                box.exec_()
+                return
+            elif float(self.speedPercentEdit.text()) <= 0 or float(self.speedPercentEdit.text()) > 150:
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Speed percentage '\
+                                  'must be greater than 0% and less or equal to 150%', parent=self)
+                box.exec_()
+                return
+            elif float(self.massEdit.text()) <= 0:
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Mass must be '\
+                                  'greater than zero', parent=self)
+                box.exec_()
+                return
+            elif float(self.dampingEdit.text()) < 0:
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Damping must be '\
+                                  'greater than or equal to zero', parent=self)
+                box.exec_()
+                return
+            elif int(self.lengthEdit.text()) <= 0 or int(self.lengthEdit.text()) > 20:
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Length of  '\
+                                  'simulation must be greater than 0s but no more than 20s', parent=self)
+                box.exec_()
+                return
+        except:
+            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Your parameters '\
+                              'are incorrect, check them. Most likely you entered something '\
+                              'other than a number.', parent=self)
             box.exec_()
             return
-        elif abs(float(self.initPosEdit.text())) > 5 and self.doParams.isChecked():
-            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Initial position must '\
-                              'be in the range of -5 to 5 meters.', parent=self)
-            box.exec_()
-            return
-        elif float(self.speedPercentEdit.text()) <= 0 or float(self.speedPercentEdit.text()) > 150:
-            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Speed percentage '\
-                              'must be greater than 0% and less or equal to 150%', parent=self)
-            box.exec_()
-            return
-        elif float(self.massEdit.text()) <= 0:
-            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Mass must be '\
-                              'greater than zero', parent=self)
-            box.exec_()
-            return
-        elif int(self.lengthEdit.text()) <= 0 or int(self.lengthEdit.text()) > 20:
-            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Length of  '\
-                              'simulation must be greater than 0s but no more than 20s', parent=self)
-            box.exec_()
-            return
-
         # END ERROR CHECKING ############
 
         # Here, we set up the parameters so that they can be identified properly
@@ -424,9 +435,26 @@ class MainGUI(QtGui.QMainWindow):
         found (or from the pygame window to the GUI). This is fine for now
         since the math takes less than half a second to complete...but it's
         a little messy."""
-        if float(self.massEdit.text()) <= 0:
-            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Mass must be '\
-                              'greater than zero', parent=self)
+        try:
+            if float(self.massEdit.text()) <= 0:
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Mass must be '\
+                                  'greater than zero', parent=self)
+                box.exec_()
+                return
+            elif float(self.dampingEdit.text()) < 0:
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Damping must be '\
+                                  'greater than or equal to zero', parent=self)
+                box.exec_()
+                return
+            elif len(self.springArgs) == 0 and self.doParams.isChecked():
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'You must '\
+                                  'enter at least one spring stiffness.', parent=self)
+                box.exec_()
+                return
+        except:
+            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Your parameters '\
+                              'are incorrect, check them. Most likely you entered something '\
+                              'other than a number.', parent=self)
             box.exec_()
             return
         y_t = [] # position values
