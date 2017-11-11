@@ -250,15 +250,15 @@ class MainGUI(QtGui.QMainWindow):
         """Nothing helpful right now"""
         box = QtGui.QMessageBox(parent=self)
         box.setText("You can add a variety of forcing functions. For best results, "+\
-                     "It is recommended to use an asterix (*) for any multiplication, and be safe "+\
-                     "and use brackets. "+\
-                     "An example of something that will work is:\n3sin(3t)\nwhich is the "+\
-                     "same as 3*sin(3*t). Something that will not work is:\ntsin(2t)\n"+\
-                     "while entering t*sin(2t) will work. Exponentials will work too (e"+\
+                     "it is recommended to use an asterix (*) for any multiplication, and to use "+\
+                     "brackets to be safe. "+\
+                     "An example of a function which will work is:\n3sin(3t)\nwhich is the "+\
+                     "same as 3*sin(3*t). \nA function which will not work is: tsin(2t)\n"+\
+                     "compared to t*sin(2t), which will work.\nExponentials will work too (e"+\
                      "^t, e^(-t)), and exponents (t^2, t^(3*t). This should be fairly "+\
-                     "easy to use, try and use proper syntax like * and () wherever, and "+\
-                     "it should be fine. \n\nAlso, REMEMBER to click 'Set Forcing Function' when "+\
-                     "you are done entering in one, or it will not consider it.")
+                     "easy to use, try and use proper syntax like * and () wherever possible, and "+\
+                     "you should be fine. \n\nAlso, REMEMBER to click 'Set Forcing Function' when "+\
+                     "you are done entering one in, or the solver will not consider it.")
 
         box.setWindowTitle('Forcing Help')
 
