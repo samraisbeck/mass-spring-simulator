@@ -29,7 +29,7 @@ To do:
 class MainGUI(QtGui.QMainWindow):
     def __init__(self):
         super(MainGUI, self).__init__()
-        self.setStyleSheet("background-color: burlywood")
+        self.setStyleSheet("background-color: lightblue")
         self._initUI()
         self.springArgs = []
         self.mass = 0
@@ -207,11 +207,11 @@ class MainGUI(QtGui.QMainWindow):
         hbox = QtGui.QHBoxLayout()
         button = QtGui.QPushButton('Plot', parent=self)
         button.clicked.connect(self.plotData)
-        button.setStyleSheet("font: bold; background-color: peru")
+        button.setStyleSheet("font: bold; background-color: steelblue")
         hbox.addWidget(button)
         button = QtGui.QPushButton('Launch Simulator', parent=self)
         button.clicked.connect(self.launchSimulator)
-        button.setStyleSheet("font: bold; background-color: peru")
+        button.setStyleSheet("font: bold; background-color: steelblue")
         hbox.addWidget(button)
         return hbox
 
