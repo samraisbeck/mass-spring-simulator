@@ -12,20 +12,6 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from math import cos, sin, tan, exp, pi, sqrt
 
-"""
-To do:
-- Forcing Functions
-- data printed on simulation window
-    - i.e mass, damping, stiffness, etc
-- make it all look better
-- spring on both sides (possibly?)
-- add hanging spring version
-    - this could maybe be just a checkbox the user can select, or a new tab
-    in the GUI
-    - if this is selected, then run the hanging mass calculation, if not,
-    run the calculation we have going right now.
-"""
-
 class MainGUI(QtGui.QMainWindow):
     def __init__(self):
         super(MainGUI, self).__init__()
@@ -94,6 +80,8 @@ class MainGUI(QtGui.QMainWindow):
         return hbox
 
     def _UIMassDamping(self):
+        """This initializes the Mass and Damping fields, but it also
+        adds in the check boxes for a vertical or horizontal system."""
         groupbox = QtGui.QGroupBox()
         ultHBox = QtGui.QHBoxLayout()
         self.direction="X"
@@ -132,6 +120,10 @@ class MainGUI(QtGui.QMainWindow):
         return ultHBox
 
     def _UIForcingOptions(self):
+        """
+        Set up the forcing function parameters, as well as the resonance
+        options.
+        """
         ultHBox = QtGui.QHBoxLayout()
         hbox = QtGui.QHBoxLayout()
         vbox = QtGui.QVBoxLayout()
@@ -171,6 +163,7 @@ class MainGUI(QtGui.QMainWindow):
         return ultHBox
 
     def _UIInitPosAndSpeed(self):
+        """Initial position, speed of simulation, and length of simulation"""
         hbox = QtGui.QHBoxLayout()
         label = QtGui.QLabel('Initial Position (-5 to +5 meters): ', parent=self)
         self.initPosEdit = QtGui.QLineEdit()
@@ -194,6 +187,7 @@ class MainGUI(QtGui.QMainWindow):
         return hbox
 
     def _UISetupPlot(self):
+        """Setup the plot"""
         self.fig = Figure(figsize=(600,600), dpi=72, facecolor=(1,1,1), edgecolor=(0,0,0))
         ax = self.fig.add_subplot(111)
         ax.plot([0,0])
@@ -204,6 +198,7 @@ class MainGUI(QtGui.QMainWindow):
         return FigureCanvas(self.fig)
 
     def _UIMainControls(self):
+        """Main controls (plot, launch)"""
         hbox = QtGui.QHBoxLayout()
         button = QtGui.QPushButton('Plot', parent=self)
         button.clicked.connect(self.plotData)
@@ -219,6 +214,9 @@ class MainGUI(QtGui.QMainWindow):
 
 
     def setForcingFunction(self):
+        """Here is where we set the forcing function depending on what the
+        user has typed in. It is pretty versatile but proper format as
+        indicated in the User Manual document should be followed."""
         if self.forcingField.text() == '':
             self.forcingField.setText('0')
         self.setForcingFunctionText = "0"
@@ -252,17 +250,6 @@ class MainGUI(QtGui.QMainWindow):
         list (SP means spring parallel, SS means spring series. SS is always
         followed by the number of springs on that series, then the values of
         the stiffnesses themselves)"""
-
-        # if self.springsEdit.text() == "" or float(self.springsEdit.text()) <= 0:
-        #     box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'You must '\
-        #                       'enter a non-zero value for spring stiffness.', parent=self)
-        #     box.exec_()
-        #     return
-        #
-        # I feel like this check is better done in a loop below, because users
-        # can enter in multiple values for stiffness.
-        # Also we can then see if each element is in fact a number greater than
-        # 0 and not like a word or letter or something.
 
         text = self.springsEdit.text().split()
         if len(text) == 0:
@@ -299,22 +286,6 @@ class MainGUI(QtGui.QMainWindow):
             tempText += spring+' '
         self.curSpringsLabel.setText(tempText)
 
-    def resonanceHelp(self):
-        """Nothing helpful right now"""
-        box = QtGui.QMessageBox(parent=self)
-        box.setText("If 'Show Current Parameters' is checked, the program will "+\
-                     "plot the position with the parameters you have entered. If "+\
-                     "'Show Resonance' is checked, the position will be plotted for "+\
-                     "a mass of 2 and a stiffness of 8. In this case, the homogeneous "+\
-                     "component of the solution has the same frequency as the forcing "+\
-                     "function, so the oscillations are forced to grow. If 'Show Anti-'"+\
-                     "Resonance' is selected, the same thing happens as with resonance, "+\
-                     "but the mass starts at the opposite side. Therefore, the frequencies "+\
-                     "are opposite each other, and oscillations decrease even though there "+\
-                     "is no damping force.")
-
-        box.exec_()
-
     def setHorizontal(self):
         self.direction = "X"
 
@@ -322,11 +293,13 @@ class MainGUI(QtGui.QMainWindow):
         self.direction = "Y"
 
     def resonanceForcing(self):
+        """Set the correct forcing function for resonance or anti-resonance"""
         self.forcingFunctionText = "sin(2*t)"
         self.forcingFunctionLabel.setText('Forcing Function: '+self.forcingFunctionText)
         self.forcingField.setEnabled(False)
 
     def reEnableForcingMenu(self):
+        """Reset forcing function to what it was before resonance was checked"""
         self.forcingField.setEnabled(True)
         self.setForcingFunction()
 
@@ -363,6 +336,9 @@ class MainGUI(QtGui.QMainWindow):
         """Launches the pygame simulator via command line. Sends the springArgs
         (which indicate parallel or series), mass, damping, initial position,
         and speed of simulation to be processed in the spring.py file."""
+
+        # BEGIN ERROR CHECKING ############
+
         if len(self.springArgs) == 0 and self.doParams.isChecked():
             box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'You must '\
                               'enter at least one spring stiffness.', parent=self)
@@ -388,6 +364,11 @@ class MainGUI(QtGui.QMainWindow):
                               'simulation must be greater than 0s but no more than 20s', parent=self)
             box.exec_()
             return
+
+        # END ERROR CHECKING ############
+
+        # Here, we set up the parameters so that they can be identified properly
+        # in spring.py (the simulation file)
         directory = os.path.dirname(os.path.realpath(__file__))
         springArg = self.springArgs
         massArg = 'M'+self.massEdit.text()
@@ -398,25 +379,21 @@ class MainGUI(QtGui.QMainWindow):
         directionArg = "DIR" + self.direction
         lengthArg = 'LEN' + self.lengthEdit.text()
         if self.resonanceCheck.isChecked() or self.antiResonanceCheck.isChecked():
-            # Basically force predetermined values if a special case is selected
+            # Force predetermined values if a special case is selected
             massArg = 'M2'
             dampingArg = 'D0'
             springArg = ['SP8']
-            initPosArg = 'IP-3'
+            initPosArg = 'IP-3' # For resonance, init position is -3
         if self.antiResonanceCheck.isChecked():
-            initPosArg = 'IP3'
+            initPosArg = 'IP3' # for anti-resonance, init position is 3
         args = [sys.executable, directory+'\\spring.py']+springArg+[massArg, \
                 dampingArg, initPosArg, speedArg, funcNumArg, directionArg, lengthArg]
-        Popen(args, cwd = directory)
+        Popen(args, cwd = directory) # Open the simulation window
 
     def getForcingVal(self, time):
-        """ Eventually, when we have a variety of forcing functions in the drop-down,
-            we can just go by their index number and then return the appropriate
-            function value here (fNum will indicate which function we need)."""
+        """ Gets the value of the forcing function at the given time"""
 
         function = self.forcingFunctionText.replace("t", str(time))
-
-        # Using external code to evaluate the forcing function at each time interval
         return eval (function);
 
     def plotData(self):
@@ -425,25 +402,22 @@ class MainGUI(QtGui.QMainWindow):
         huge array of position/time data to a pygame window has not been
         found (or from the pygame window to the GUI). This is fine for now
         since the math takes less than half a second to complete...but it's
-        a little messy.
-        Watch this to understand Euler's method: https://www.youtube.com/watch?v=k2V2UYr6lYw"""
+        a little messy."""
         if float(self.massEdit.text()) <= 0:
             box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Mass must be '\
                               'greater than zero', parent=self)
             box.exec_()
             return
-        y_t = [] # temp y
+        y_t = [] # position values
         y_t.append(float(self.initPosEdit.text()))
-        t_t = [] # temp t
+        t_t = [] # time values
         t_t.append(0)
-        v = []
-        v.append(0) # v = dy/dx for Euler method
+        v = [] # velocity values
+        v.append(0) # v = dy/dx
         # gotta be floats for the math
         b = float(self.dampingEdit.text())
         m = float(self.massEdit.text())
         k = self.getStiffness()
-        # + 1 here because fNum = 0 reserved for the resonance cases
-        #fNum = self.forcingDropDown.currentIndex() + 1
         if self.resonanceCheck.isChecked() or self.antiResonanceCheck.isChecked():
             # Force values if special case is selected
             b = 0.0
@@ -459,6 +433,8 @@ class MainGUI(QtGui.QMainWindow):
             forcingFunction = self.getForcingVal(t_t[i-1]) if self.direction == 'X' else (self.getForcingVal(t_t[i-1]) - 9.81*m)
 
             # Midpoint Method
+            # More comments for this method are in spring.py as it is used
+            # there too.
             k1y = v[i-1]
             k1v = (forcingFunction - b*v[i-1] - k*y_t[i-1])/m
             forcingFunctionInc = self.getForcingVal(t_t[i-1]+0.5*inc) if self.direction == 'X' else (self.getForcingVal(t_t[i-1]+0.5*inc) - 9.81*m)
@@ -497,6 +473,7 @@ class MainGUI(QtGui.QMainWindow):
         return stiffness
 
 if __name__ == '__main__':
+    """Launch the GUI"""
     app = QtGui.QApplication(sys.argv)
     mw = MainGUI()
     app.exec_()
