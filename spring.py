@@ -116,7 +116,7 @@ class MassSpring(object):
                 self.y = np.append(self.y, y_t[i])
 
     def analytical(self, iterations=100000):
-        """For development use only."""
+        """For development and debug use only."""
         data = open('errorData.txt', 'w')
         yAct = np.zeros(iterations)
         tAct = np.zeros(iterations)
@@ -217,7 +217,6 @@ class MassSpring(object):
                         startPos += perc*dist
                 else:
                     pygame.draw.line(self.window, (255,0,150), (WIDTH/2, ((-1)**i*(i*10))+HEIGHT/2), (self.blockX+self.blockW/2, ((-1)**i*(i*10))+HEIGHT/2), 5)
-            # self.block.x = self.blockEq + round(self.y[frame]*100)
             self.window.blit(self.block, (self.blockX, self.blockY))
 
         # There were a few weird changes that needed to be made to the X direction case (such as swapping x and y expressions, and changing the order of statements) that I just
@@ -251,7 +250,6 @@ class MassSpring(object):
                         startPos += perc*dist
                 else:
                     pygame.draw.line(self.window, (255,0,150), ((-1)**i*(i*10)+WIDTH/2, HEIGHT/2-const), (((-1)**i*(i*10))+WIDTH/2, self.blockY+self.blockH/2-const), 5)
-            # self.block.x = self.blockEq + round(self.y[frame]*100)
             self.window.blit(self.block, (self.blockX, self.blockY-const))
 
         pygame.display.update()
@@ -261,7 +259,7 @@ class MassSpring(object):
            abs((self.y[self.checkTimes[1]]-self.y[self.checkTimes[2]])*100) < 0.5 and\
            abs((self.y[self.checkTimes[0]]-self.y[self.checkTimes[2]])*100) < 0.5 and\
            self.printTime != 0:
-           return False
+           return False # return False if mass stopped moving
 
         return True
 
@@ -322,7 +320,9 @@ if __name__ == '__main__':
     # Run the calculation
     MassSpringSim.runNumericalMethod(int(MassSpringSim.length/MassSpringSim.inc))
     MassSpringSim.renderStaticTexts()
-    MassSpringSim.analytical(int(MassSpringSim.length/MassSpringSim.inc))
+    # Uncomment the next line if error analysis is to be performed on
+    # analytical solutions.
+    # MassSpringSim.analytical(int(MassSpringSim.length/MassSpringSim.inc))
     run = True
     while True:
         """
