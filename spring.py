@@ -4,17 +4,26 @@ import sys, os
 import numpy as np
 import matplotlib.pyplot as plt
 WIDTH = 1300
-HEIGHT = 1000
+HEIGHT = 700
 pygame.init()
+
+"""
+This is the file that runs the simulation of the system.
+"""
 
 
 
 class MassSpring(object):
     def __init__(self, springs, damping, mass, initPos, speedPercent, forcingFunction, direction, lengthOfSim):
+        self.direction = direction
+        if direction == 'X':
+            # Adjust screen size for horizontal system
+            global HEIGHT
+            HEIGHT = 600
         self.window = pygame.display.set_mode((WIDTH, HEIGHT))
-        self.window.fill((255,255,255))
+        self.window.fill((255,255,255)) # fill the window white
         self.clock = pygame.time.Clock()
-        self.fps = 100*speedPercent
+        self.fps = 100*speedPercent # frames per second
         self.springs = springs
         self.k = 0
         self.getStiffness()
@@ -41,7 +50,6 @@ class MassSpring(object):
         self.ODEstring = ''
         self.forcingStrings = ['sin(2t)', '0', '10', 't', 't^2', 'sin(t)', 'exp(t)']
         self.forcingFunction = forcingFunction
-        self.direction = direction
         self.checkTimes = [0, 0, 0]
         self.length = lengthOfSim
 
@@ -58,23 +66,18 @@ class MassSpring(object):
         self.k = round(self.k, 3)
 
     def getForcingVal(self, t):
-        """ Eventually, when we have a variety of forcing functions in the drop-down,
-            we can just go by their index number and then return the appropriate
-            function value here (fNum will indicate which function we need)."""
-
-        # Using external code to evaluate the forcing function at each time interval
+        """ Gets the entered forcing function value at time t"""
 
         return eval(self.forcingFunction);
 
-    def euler(self, iterations = 100000):
+    def runNumericalMethod(self, iterations = 100000):
         """Unfortunately, right now we need to calculate the approximation when
         plotting AND when simulating. This is because a good way of passing a
         huge array of position/time data to a pygame window has not been
         found (or from the pygame window to the GUI). This is fine for now
         since the math takes less than half a second to complete...but it's
-        a little messy.
-        Watch this to understand Euler's method: https://www.youtube.com/watch?v=k2V2UYr6lYw"""
-        sampleRate = iterations/1000 # only sample every 1000 points.
+        a little messy."""
+        sampleRate = (iterations/(1000))*10/self.length # only sample every 1000 points.
         self.y = np.array([0]) # Position array to display on the screen
         y_t = [] # Temporary position array (contains EVERY point)
         self.y[0] = self.y0
@@ -107,22 +110,24 @@ class MassSpring(object):
             v.append(v[i-1] + (forcingFunction/self.m - (self.b/self.m)*v[i-1] - (self.k/self.m)*y_t[i-1])*self.inc)
             """
             if i%sampleRate == 0:
-                # sample every 100th point
+                # sample only 1000 points
                 self.t = np.append(self.t, t_t[i])
                 self.y = np.append(self.y, y_t[i])
 
     def analytical(self, iterations=100000):
+        """For development use only."""
         data = open('errorData.txt', 'w')
         yAct = np.zeros(iterations)
         tAct = np.zeros(iterations)
         tAct[0] = 0
         yAct[0] = self.y0
-        sampleRate = iterations/1000
+        sampleRate = (iterations/(1000))*10/self.length
 
         for i in range(1, iterations):
             tAct[i] = tAct[i-1]+self.inc
             yAct[i] = np.exp(-(1/3.0)*tAct[i])*(2*np.cos((sqrt(29)/3)*tAct[i]) + (2/sqrt(29))*np.sin((sqrt(29)/3)*tAct[i])) # test1
             #yAct[i] = 2*np.cos((sqrt(1300)/sqrt(3))*tAct[i]) # test2
+            yAct[i] = (44.0/7)*cos(sqrt(2)*tAct[i])-(30.0/7)*cos(3*tAct[i])
             if i%sampleRate==0:
                 data.write(str(round(100*abs(yAct[i]-self.y[i/sampleRate])/abs(yAct[i]), 6))+'\n')
         data.close()
@@ -137,6 +142,7 @@ class MassSpring(object):
         return font.render(text, 1, color)
 
     def renderStaticTexts(self):
+        """Render texts that are static"""
         for i in range(1,self.maxInitPos+1):
             self.distanceTexts.append(self.renderText(str(i), 15))
             self.distanceTexts.append(self.renderText(str(-i), 15))
@@ -159,11 +165,13 @@ class MassSpring(object):
         self.clock.tick(self.fps) # Set FPS
         self.window.fill((255,255,255))
         events = pygame.event.get()
+        keys = pygame.key.get_pressed()
         for event in events:
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT or keys[pygame.K_ESCAPE]:
                 # this is hitting the exit button
                 pygame.quit()
                 sys.exit(0)
+
         if self.t[frame]//1 != self.printTime:
             # We floor the time at this frame to just get the integer part.
             # Then, we check to see if that equals the one on the screen. If it
@@ -212,16 +220,17 @@ class MassSpring(object):
         # There were a few weird changes that needed to be made to the X direction case (such as swapping x and y expressions, and changing the order of statements) that I just
         # copied it and made the changes in the second function. Feel free to make any modifications to improve this.
         else:
+            const = 200 # Shift all the drawings up by this amount
             for i in range(1, self.maxInitPos+1):
                 # Draw the measurement lines (lines are spaced out 1 meter)
-                pygame.draw.line(self.window, (0,255,0), (self.blockX-20, HEIGHT/2 + 100*i), (self.blockX+self.blockW+20, HEIGHT/2 + 100*i))
-                self.window.blit(self.distanceTexts[2*(i-1)], (self.blockX-20, HEIGHT/2 + 100*i))
-                pygame.draw.line(self.window, (0,255,0), (self.blockX-20, HEIGHT/2 - 100*i), (self.blockX+self.blockW+20, HEIGHT/2 - 100*i))
-                self.window.blit(self.distanceTexts[2*(i-1)], (self.blockX-20, HEIGHT/2 - 100*i))
+                pygame.draw.line(self.window, (0,255,0), (self.blockX-20, HEIGHT/2 + 100*i-const), (self.blockX+self.blockW+20, HEIGHT/2 + 100*i-const))
+                self.window.blit(self.distanceTexts[2*i-1], (self.blockX-20, HEIGHT/2 + 100*i-const))
+                pygame.draw.line(self.window, (0,255,0), (self.blockX-20, HEIGHT/2 - 100*i-const), (self.blockX+self.blockW+20, HEIGHT/2 - 100*i-const))
+                self.window.blit(self.distanceTexts[2*(i-1)], (self.blockX-20, HEIGHT/2 - 100*i-const))
 
             # print round(self.y[frame]*100)
-            pygame.draw.line(self.window, (255,0,0), (self.blockX-20, HEIGHT/2), (self.blockX+self.blockW+20, HEIGHT/2)) # Equilibrium line
-            self.window.blit(self.distanceTexts[-1], (self.blockX-20, HEIGHT/2))
+            pygame.draw.line(self.window, (255,0,0), (self.blockX-20, HEIGHT/2-const), (self.blockX+self.blockW+20, HEIGHT/2-const)) # Equilibrium line
+            self.window.blit(self.distanceTexts[-1], (self.blockX-20, HEIGHT/2-const))
 
             # Since positive is usually considered as going up, negate the values returned from the solver to make the orientation consistent
             self.blockY = self.blockYEq+round(-self.y[frame]*100)
@@ -235,16 +244,16 @@ class MassSpring(object):
                     startPos = HEIGHT/2
                     for j in range(len(self.springs[i])):
                         perc = (1/self.springs[i][j])/Sum
-                        pygame.draw.line(self.window, (abs(cos(j*(pi/2)))*255,0,150), (((-1)**i*(i*10))+WIDTH/2, startPos), (((-1)**i*(i*10))+WIDTH/2, startPos + perc*dist), 5)
+                        pygame.draw.line(self.window, (abs(cos(j*(pi/2)))*255,0,150), (((-1)**i*(i*10))+WIDTH/2, startPos-const), (((-1)**i*(i*10))+WIDTH/2, startPos + perc*dist-const), 5)
                         startPos += perc*dist
                 else:
-                    pygame.draw.line(self.window, (255,0,150), ((-1)**i*(i*10)+WIDTH/2, HEIGHT/2), (((-1)**i*(i*10))+WIDTH/2, self.blockY+self.blockH/2), 5)
+                    pygame.draw.line(self.window, (255,0,150), ((-1)**i*(i*10)+WIDTH/2, HEIGHT/2-const), (((-1)**i*(i*10))+WIDTH/2, self.blockY+self.blockH/2-const), 5)
             # self.block.x = self.blockEq + round(self.y[frame]*100)
-            self.window.blit(self.block, (self.blockX, self.blockY))
+            self.window.blit(self.block, (self.blockX, self.blockY-const))
 
         pygame.display.update()
-        # Check to see if the mass is still moving
 
+        # Check to see if the mass is still moving
         if abs((self.y[self.checkTimes[0]]-self.y[self.checkTimes[1]])*100) < 0.5 and\
            abs((self.y[self.checkTimes[1]]-self.y[self.checkTimes[2]])*100) < 0.5 and\
            abs((self.y[self.checkTimes[0]]-self.y[self.checkTimes[2]])*100) < 0.5 and\
@@ -271,7 +280,11 @@ if __name__ == '__main__':
     damping = 0
     mass = 0
     direction = ""
-
+    """
+    In the following loop, we are obtaining the parameters from the command
+    line arguments sent by the GUI. These string identifiers like "SS" and
+    "DAM" were made by us and are specific to our program.
+    """
     for i in range(len(sys.argv)):
         if i == 0:
             pass
@@ -298,13 +311,20 @@ if __name__ == '__main__':
         elif sys.argv[i][0:3] == 'LEN':
             lengthOfSim = int(sys.argv[i][3:])
     totalSprings = parallelSprings+seriesSprings
+    # Create the simulator object
     MassSpringSim = MassSpring(totalSprings, damping, mass, pos0, percSpeed, fNum, direction,\
                                lengthOfSim)
-    MassSpringSim.euler(int(MassSpringSim.length/MassSpringSim.inc))
+    # Run the calculation
+    MassSpringSim.runNumericalMethod(int(MassSpringSim.length/MassSpringSim.inc))
     MassSpringSim.renderStaticTexts()
     MassSpringSim.analytical(int(MassSpringSim.length/MassSpringSim.inc))
     run = True
     while True:
+        """
+        Here, we run the simulation. It stops when the mass stops moving,
+        or when the simulation time expires. The user can press Space to
+        restart, or close the window.
+        """
         if run == False:
             break
         else:
