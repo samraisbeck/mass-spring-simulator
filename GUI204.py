@@ -426,11 +426,9 @@ class MainGUI(QtGui.QMainWindow):
                 dampingArg, initPosArg, speedArg, funcNumArg, directionArg, lengthArg]
         Popen(args, cwd = directory) # Open the simulation window
 
-    def getForcingVal(self, time):
+    def getForcingVal(self, t):
         """ Gets the value of the forcing function at the given time"""
-
-        function = self.forcingFunctionText.replace("t", str(time))
-        return eval (function);
+        return eval (self.forcingFunctionText);
 
     def plotData(self):
         """Unfortunately, right now we need to calculate the approximation when
@@ -439,6 +437,7 @@ class MainGUI(QtGui.QMainWindow):
         found (or from the pygame window to the GUI). This is fine for now
         since the math takes less than half a second to complete...but it's
         a little messy."""
+
         try:
             if float(self.massEdit.text()) <= 0:
                 box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Mass must be '\
@@ -515,7 +514,18 @@ class MainGUI(QtGui.QMainWindow):
         ax = self.fig.add_subplot(111)
         ax.clear()
         ax.plot(t_t, y_t)
-        ax.set_title("Position vs. Time")
+        # Set up the plot titles correctly
+        if self.direction == 'X':
+            depVar = 'x'
+        else:
+            depVar = 'y'
+        ODEstring = ''
+        ODEstring += str(m)+depVar+"'' + "
+        if b != 0:
+            ODEstring += str(b)+depVar+"' + "
+        ODEstring += str(k)+depVar+" = "
+        ODEstring += self.forcingFunctionText
+        ax.set_title("Position vs. Time for "+ODEstring)
         ax.set_xlabel("Time (s)")
         ax.set_ylabel(self.direction+" Position (m)")
         self.canvas.draw()

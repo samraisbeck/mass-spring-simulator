@@ -1,4 +1,4 @@
-from math import cos, sin, tan, exp, sqrt, pi
+from math import cos, sin, tan, exp, sqrt, pi, floor
 import pygame
 import sys, os
 import numpy as np
@@ -39,7 +39,7 @@ class MassSpring(object):
         self.b = damping
         self.y = None # List of points after a calculation
         self.t = None # List of time values
-        self.printTime = -2 # arbitrary value
+        self.printTime = '-2' # arbitrary value
         self.text = ''
         self.y0 = initPos
         self.dy0 = 0 # Initial velocity will always be 0
@@ -95,6 +95,7 @@ class MassSpring(object):
             forcingFunction = self.getForcingVal(t_t[i-1]) if self.direction == 'X' \
                               else (self.getForcingVal(t_t[i-1]) - 9.81*self.m)
 
+
             k1y = v[i-1] # k1y is dy/dt
             k1v = (forcingFunction - self.b*v[i-1] - self.k*y_t[i-1])/self.m #k1v is dv/dt
             forcingFunctionInc = self.getForcingVal(t_t[i-1]+0.5*self.inc) if self.direction == 'X' \
@@ -111,6 +112,7 @@ class MassSpring(object):
             y_t.append(y_t[i-1] + v[i-1]*self.inc)
             v.append(v[i-1] + (forcingFunction/self.m - (self.b/self.m)*v[i-1] - (self.k/self.m)*y_t[i-1])*self.inc)
             """
+
             if i%sampleRate == 0:
                 # sample only 1000 points
                 self.t = np.append(self.t, t_t[i])
@@ -128,8 +130,8 @@ class MassSpring(object):
         for i in range(1, iterations):
             tAct[i] = tAct[i-1]+self.inc
             #yAct[i] = 2*np.cos(tAct[i]) # num1
-            yAct[i] = (2.0/599.0*np.exp(-5*tAct[i])*(sqrt(599.0)*sin(5*sqrt(599.0)*tAct[i])+ 599.0*cos(sqrt(599.0)*tAct[i]*5))) # num2
-            #yAct[i] = np.exp(-(1/3.0)*tAct[i])*(2*np.cos((sqrt(29)/3)*tAct[i]) + (2/sqrt(29))*np.sin((sqrt(29)/3)*tAct[i])) # num3
+            #yAct[i] = (2.0/599.0*np.exp(-5*tAct[i])*(sqrt(599.0)*sin(5*sqrt(599.0)*tAct[i])+ 599.0*cos(sqrt(599.0)*tAct[i]*5))) # num2
+            yAct[i] = np.exp(-(1/3.0)*tAct[i])*(2*np.cos((sqrt(29)/3)*tAct[i]) + (2/sqrt(29))*np.sin((sqrt(29)/3)*tAct[i])) # num3
             #yAct[i] = 2*np.cos((sqrt(1300)/sqrt(3))*tAct[i]) # num4
             #yAct[i] = 44/7.0*np.cos(sqrt(2)*tAct[i])-30/7.0*np.cos(3*tAct[i]) #num5
             if i%sampleRate==0:
@@ -175,18 +177,16 @@ class MassSpring(object):
                 # this is hitting the exit button
                 pygame.quit()
                 sys.exit(0)
-
-        if self.t[frame]//1 != self.printTime:
-            # We floor the time at this frame to just get the integer part.
-            # Then, we check to see if that equals the one on the screen. If it
-            # does not, we render a new one (one second has elapsed). We don't use
-            # system time to make sure computer lag does not cause the mass
-            # simulation to be off sync with the time.
-            self.printTime = self.t[frame]//1
+        if str(self.t[frame]).split('.')[0] != self.printTime:
+            # Check if the integer value of the time is equal to the one on the screen.
+            # If not, update it to be this one.
+            # We don't use system time to make sure computer log does not cause
+            # the mass simulation to be off sync with the time.
+            self.printTime = str(self.t[frame]).split('.')[0]
             self.checkTimes[0] = self.checkTimes[1]
             self.checkTimes[1] = (self.checkTimes[1]+frame)/2
             self.checkTimes[2] = frame
-            self.timeText = self.renderText('Time: '+str(int(self.printTime)), 40, (255,0,0))
+            self.timeText = self.renderText('Time: '+self.printTime, 40, (255,0,0))
         self.window.blit(self.timeText, (100,100))
         self.window.blit(self.ODEstring, (100, 50))
 
@@ -259,7 +259,7 @@ class MassSpring(object):
         if abs((self.y[self.checkTimes[0]]-self.y[self.checkTimes[1]])*100) < 0.5 and\
            abs((self.y[self.checkTimes[1]]-self.y[self.checkTimes[2]])*100) < 0.5 and\
            abs((self.y[self.checkTimes[0]]-self.y[self.checkTimes[2]])*100) < 0.5 and\
-           self.printTime != 0:
+           self.printTime != '0':
            return False # return False if mass stopped moving
 
         return True
@@ -350,6 +350,7 @@ if __name__ == '__main__':
                 for key in pygame.event.get():
                     if key.type == pygame.QUIT:
                         pygame.quit()
+                        sys.exit(0)
                     if key.type == pygame.KEYDOWN:
                         if key.key == pygame.K_ESCAPE:
                             pressed = 1
