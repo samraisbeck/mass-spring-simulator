@@ -178,7 +178,7 @@ class MainGUI(QtGui.QMainWindow):
         self.initPosEdit.setText('2')
         hbox.addWidget(label)
         hbox.addWidget(self.initPosEdit)
-        label = QtGui.QLabel('Speed of Simulation (1 to 150%): ', parent=self)
+        label = QtGui.QLabel('Speed of Simulation (5 to 150%): ', parent=self)
         self.speedPercentEdit = QtGui.QLineEdit()
         self.speedPercentEdit.setStyleSheet('background-color: white')
         self.speedPercentEdit.setText('100')
@@ -375,9 +375,9 @@ class MainGUI(QtGui.QMainWindow):
                                   'be in the range of -5 to 5 meters.', parent=self)
                 box.exec_()
                 return
-            elif float(self.speedPercentEdit.text()) <= 0 or float(self.speedPercentEdit.text()) > 150:
+            elif float(self.speedPercentEdit.text()) < 5 or float(self.speedPercentEdit.text()) > 150:
                 box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Speed percentage '\
-                                  'must be greater than 0% and less or equal to 150%', parent=self)
+                                  'must be greater than 5% and less or equal to 150%', parent=self)
                 box.exec_()
                 return
             elif float(self.massEdit.text()) <= 0:

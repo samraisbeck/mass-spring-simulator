@@ -23,7 +23,8 @@ class MassSpring(object):
         pygame.display.set_caption("Simulation Window")
         self.window.fill((255,255,255)) # fill the window white
         self.clock = pygame.time.Clock()
-        self.fps = 100*speedPercent # frames per second
+        self.fps = 100  # frames per second
+        self.speedPercent = speedPercent
         self.springs = springs
         self.k = 0
         self.getStiffness()
@@ -77,7 +78,7 @@ class MassSpring(object):
         found (or from the pygame window to the GUI). This is fine for now
         since the math takes less than half a second to complete...but it's
         a little messy."""
-        sampleRate = (iterations/(1000))*10/self.length # only sample every 1000 points.
+        sampleRate = self.speedPercent*(iterations/(1000))*10/self.length # only sample every 1000 points.
         self.y = np.array([0]) # Position array to display on the screen
         y_t = [] # Temporary position array (contains EVERY point)
         self.y[0] = self.y0
@@ -260,6 +261,7 @@ class MassSpring(object):
            abs((self.y[self.checkTimes[1]]-self.y[self.checkTimes[2]])*100) < 0.5 and\
            abs((self.y[self.checkTimes[0]]-self.y[self.checkTimes[2]])*100) < 0.5 and\
            self.printTime != '0':
+           print self.printTime
            return False # return False if mass stopped moving
 
         return True
