@@ -1,16 +1,18 @@
 
 from PySide import QtGui, QtCore
-import sys, os
+import sys
+import os
 from subprocess import Popen
 import matplotlib
-from pyparsing import Literal,CaselessLiteral,Word,Combine,Group,Optional,\
-    ZeroOrMore,Forward,nums,alphas
+from pyparsing import Literal, CaselessLiteral, Word, Combine, Group, Optional,\
+    ZeroOrMore, Forward, nums, alphas
 import operator
 import re
 matplotlib.use('Qt4Agg')
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from math import cos, sin, tan, exp, pi, sqrt
+
 
 class MainGUI(QtGui.QMainWindow):
     def __init__(self):
@@ -55,14 +57,16 @@ class MainGUI(QtGui.QMainWindow):
         vbox.addWidget(self.parallelCheck)
         vbox.addWidget(self.seriesCheck)
         groupbox.setLayout(vbox)
-        groupbox.setContentsMargins(0,0,0,0)
+        groupbox.setContentsMargins(0, 0, 0, 0)
         hbox.addWidget(groupbox)
         vbox = QtGui.QVBoxLayout()
         hbox2 = QtGui.QHBoxLayout()
         self.springsEdit = QtGui.QLineEdit()
         self.springsEdit.setStyleSheet('background-color: white')
-        self.springsEdit.setPlaceholderText('Add series or parallel springs...')
-        self.springsEdit.setToolTip('Series example: 100 200 35 ... Parallel example: 150')
+        self.springsEdit.setPlaceholderText(
+            'Add series or parallel springs...')
+        self.springsEdit.setToolTip(
+            'Series example: 100 200 35 ... Parallel example: 150')
         hbox2.addWidget(self.springsEdit)
         button = QtGui.QPushButton('Add Spring(s)', parent=self)
         button.clicked.connect(self.addSprings)
@@ -84,19 +88,22 @@ class MainGUI(QtGui.QMainWindow):
         adds in the check boxes for a vertical or horizontal system."""
         groupbox = QtGui.QGroupBox()
         ultHBox = QtGui.QHBoxLayout()
-        self.direction="X"
-        self.horizontalDirection = QtGui.QRadioButton('Horizontal System', parent=self)
-        self.horizontalDirection.setToolTip("Simulate a mass moving horizontally")
+        self.direction = "X"
+        self.horizontalDirection = QtGui.QRadioButton(
+            'Horizontal System', parent=self)
+        self.horizontalDirection.setToolTip(
+            "Simulate a mass moving horizontally")
         self.horizontalDirection.setChecked(True)
         self.horizontalDirection.clicked.connect(self.setHorizontal)
-        self.verticalDirection = QtGui.QRadioButton('Vertical System', parent=self)
+        self.verticalDirection = QtGui.QRadioButton(
+            'Vertical System', parent=self)
         self.verticalDirection.setToolTip("Simulate a hanging mass")
         self.verticalDirection.clicked.connect(self.setVertical)
         vbox = QtGui.QVBoxLayout()
         vbox.addWidget(self.horizontalDirection)
         vbox.addWidget(self.verticalDirection)
         groupbox.setLayout(vbox)
-        groupbox.setContentsMargins(0,0,0,0)
+        groupbox.setContentsMargins(0, 0, 0, 0)
         ultHBox.addWidget(groupbox)
 
         vbox = QtGui.QVBoxLayout()
@@ -135,7 +142,8 @@ class MainGUI(QtGui.QMainWindow):
         labelForcing = QtGui.QLabel('Forcing Function f(t): ', parent=self)
         self.forcingField = QtGui.QLineEdit()
         self.forcingField.setStyleSheet('background-color: white')
-        self.forcingField.setPlaceholderText('Add forcing function in terms of t...')
+        self.forcingField.setPlaceholderText(
+            'Add forcing function in terms of t...')
         forcingSubmit = QtGui.QPushButton('Set Forcing Function', parent=self)
         forcingSubmit.clicked.connect(self.setForcingFunction)
         self.forcingFunctionLabel = QtGui.QLabel('f(t) = 0', parent=self)
@@ -151,13 +159,17 @@ class MainGUI(QtGui.QMainWindow):
         groupbox = QtGui.QGroupBox()
         innerHBox = QtGui.QHBoxLayout()
 
-        self.doParams = QtGui.QRadioButton('Use Current Parameters', parent=self)
+        self.doParams = QtGui.QRadioButton(
+            'Use Current Parameters', parent=self)
         self.doParams.setChecked(True)
         self.doParams.clicked.connect(self.reEnableForcingMenu)
         self.resonanceCheck = QtGui.QRadioButton('Show Resonance', parent=self)
-        self.resonanceCheck.setToolTip("Set up a system that demonstrates resonance")
-        self.antiResonanceCheck = QtGui.QRadioButton('Show Anti-Resonance', parent=self)
-        self.antiResonanceCheck.setToolTip("Set up a system that demonstrates the opposite of resonance")
+        self.resonanceCheck.setToolTip(
+            "Set up a system that demonstrates resonance")
+        self.antiResonanceCheck = QtGui.QRadioButton(
+            'Show Anti-Resonance', parent=self)
+        self.antiResonanceCheck.setToolTip(
+            "Set up a system that demonstrates the opposite of resonance")
         self.resonanceCheck.clicked.connect(self.resonanceForcing)
         self.antiResonanceCheck.clicked.connect(self.resonanceForcing)
 
@@ -165,14 +177,15 @@ class MainGUI(QtGui.QMainWindow):
         innerHBox.addWidget(self.resonanceCheck)
         innerHBox.addWidget(self.antiResonanceCheck)
         groupbox.setLayout(innerHBox)
-        groupbox.setContentsMargins(0,0,0,0)
+        groupbox.setContentsMargins(0, 0, 0, 0)
         ultHBox.addWidget(groupbox)
         return ultHBox
 
     def _UIInitPosAndSpeed(self):
         """Initial position, speed of simulation, and length of simulation"""
         hbox = QtGui.QHBoxLayout()
-        label = QtGui.QLabel('Initial Position (-5 to +5 meters): ', parent=self)
+        label = QtGui.QLabel(
+            'Initial Position (-5 to +5 meters): ', parent=self)
         self.initPosEdit = QtGui.QLineEdit()
         self.initPosEdit.setStyleSheet('background-color: white')
         self.initPosEdit.setText('2')
@@ -182,7 +195,8 @@ class MainGUI(QtGui.QMainWindow):
         self.speedPercentEdit = QtGui.QLineEdit()
         self.speedPercentEdit.setStyleSheet('background-color: white')
         self.speedPercentEdit.setText('100')
-        self.speedPercentEdit.setToolTip('100 is full speed, 50 is half speed, etc...')
+        self.speedPercentEdit.setToolTip(
+            '100 is full speed, 50 is half speed, etc...')
         hbox.addWidget(label)
         hbox.addWidget(self.speedPercentEdit)
         label = QtGui.QLabel('Length of Simulation (0 to 20s): ', parent=self)
@@ -195,9 +209,10 @@ class MainGUI(QtGui.QMainWindow):
 
     def _UISetupPlot(self):
         """Setup the plot"""
-        self.fig = Figure(figsize=(600,600), dpi=72, facecolor=(1,1,1), edgecolor=(0,0,0))
+        self.fig = Figure(figsize=(600, 600), dpi=72,
+                          facecolor=(1, 1, 1), edgecolor=(0, 0, 0))
         ax = self.fig.add_subplot(111)
-        ax.plot([0,0])
+        ax.plot([0, 0])
         ax.set_title("Position vs. Time (nothing entered)")
         ax.set_xlabel("Time (s)")
         ax.set_ylabel("Position (m)")
@@ -219,7 +234,6 @@ class MainGUI(QtGui.QMainWindow):
 
 ### GUI SETUP ENDS HERE #############################
 
-
     def setForcingFunction(self):
         """Here is where we set the forcing function depending on what the
         user has typed in. It is pretty versatile but proper format as
@@ -228,24 +242,29 @@ class MainGUI(QtGui.QMainWindow):
             self.forcingField.setText('0')
         self.setForcingFunctionText = "0"
         initialForcingFunction = self.forcingField.text().lower()
-        #print initialForcingFunction
-        initialForcingFunction.replace(" ", "") # Gets rid of spaces (makes checks easier)
+        # print initialForcingFunction
+        # Gets rid of spaces (makes checks easier)
+        initialForcingFunction.replace(" ", "")
 
-        #convert to python syntax
-        newForcingFunction = re.sub(r'(e\^)([t0-9]+\b)', r'exp(\2)', initialForcingFunction)
-        newForcingFunction = re.sub(r'(e\^)(-)([t0-9]+\b)', r'exp(\2\3)', newForcingFunction)
+        # convert to python syntax
+        newForcingFunction = re.sub(
+            r'(e\^)([t0-9]+\b)', r'exp(\2)', initialForcingFunction)
+        newForcingFunction = re.sub(
+            r'(e\^)(-)([t0-9]+\b)', r'exp(\2\3)', newForcingFunction)
         newForcingFunction = re.sub(r'\^', "**", newForcingFunction)
-        newForcingFunction = re.sub(r'(\d)([a-zA-Z\(])', r'\1*\2', newForcingFunction)
-        newForcingFunction = re.sub(r'([a-zA-Z\)])(\d)', r'\1*\2', newForcingFunction)
+        newForcingFunction = re.sub(
+            r'(\d)([a-zA-Z\(])', r'\1*\2', newForcingFunction)
+        newForcingFunction = re.sub(
+            r'([a-zA-Z\)])(\d)', r'\1*\2', newForcingFunction)
 
         try:
             t = 0.01
             self.forcingFunctionText = newForcingFunction
             eval(newForcingFunction)
         except:
-            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Invalid expression '\
-                                  'was entered. Check to make sure there are no variables other than '\
-                                  't, and that there are no mistakes in your expression ', parent=self)
+            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Invalid expression '
+                                    'was entered. Check to make sure there are no variables other than '
+                                    't, and that there are no mistakes in your expression ', parent=self)
             self.forcingFunctionText = "0"
             box.exec_()
         self.forcingFunctionLabel.setText('f(t) = ' + self.forcingFunctionText)
@@ -253,21 +272,20 @@ class MainGUI(QtGui.QMainWindow):
     def forcingHelp(self):
         """Nothing helpful right now"""
         box = QtGui.QMessageBox(parent=self)
-        box.setText("You can add a variety of forcing functions. For best results, "+\
-                     "it is recommended to use an asterix (*) for any multiplication, and to use "+\
-                     "brackets to be safe. "+\
-                     "An example of a function which will work is 3sin(3t), which is the "+\
-                     "same as 3*sin(3*t). \n\nA function which will not work is tsin(2t), "+\
-                     "as opposed to t*sin(2t), which will work.\n\nExponentials will work too (e"+\
-                     "^t, e^(-t)), and exponents (t^2, t^(3*t). This should be fairly "+\
-                     "easy to use, try and use proper syntax like * and () wherever possible, and "+\
-                     "you should be fine. \n\nAlso, REMEMBER to click 'Set Forcing Function' when "+\
-                     "you are done entering one in, or the solver will not consider it.")
+        box.setText("You can add a variety of forcing functions. For best results, " +
+                    "it is recommended to use an asterix (*) for any multiplication, and to use " +
+                    "brackets to be safe. " +
+                    "An example of a function which will work is 3sin(3t), which is the " +
+                    "same as 3*sin(3*t). \n\nA function which will not work is tsin(2t), " +
+                    "as opposed to t*sin(2t), which will work.\n\nExponentials will work too (e" +
+                    "^t, e^(-t)), and exponents (t^2, t^(3*t). This should be fairly " +
+                    "easy to use, try and use proper syntax like * and () wherever possible, and " +
+                    "you should be fine. \n\nAlso, REMEMBER to click 'Set Forcing Function' when " +
+                    "you are done entering one in, or the solver will not consider it.")
 
         box.setWindowTitle('Forcing Help')
 
         box.exec_()
-
 
     def addSprings(self):
         """Based on text in the spring stiffness box, and also whether the
@@ -279,7 +297,7 @@ class MainGUI(QtGui.QMainWindow):
         text = self.springsEdit.text().split()
         if len(text) == 0:
             # someone didn't enter anything
-            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Must have at '\
+            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Must have at '
                                     'least one stiffness value.', parent=self)
             box.exec_()
             return
@@ -287,28 +305,28 @@ class MainGUI(QtGui.QMainWindow):
             try:
                 if float(number) <= 0:
                     # someone entered 0 or a negative number
-                    box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Stiffnesses '\
-                                      'must be above 0.', parent=self)
+                    box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Stiffnesses '
+                                            'must be above 0.', parent=self)
                     box.exec_()
                     return
             except:
                 # someone entered something that can't be converted to a float (like a letter)
-                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Something went '\
-                                  'wrong. Stiffnesses not entered. Should be in the format of '\
-                                  '"100 200 100" as an example.', parent=self)
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Something went '
+                                        'wrong. Stiffnesses not entered. Should be in the format of '
+                                        '"100 200 100" as an example.', parent=self)
                 box.exec_()
                 return
         l = len(text)
         tempText = 'Current Springs: '
         if self.parallelCheck.isChecked():
             for i in range(l):
-                self.springArgs.append('SP'+text[i])
+                self.springArgs.append('SP' + text[i])
         else:
-            self.springArgs.append('SS'+str(l))
+            self.springArgs.append('SS' + str(l))
             for i in range(l):
                 self.springArgs.append(text[i])
         for spring in self.springArgs:
-            tempText += spring+' '
+            tempText += spring + ' '
         self.curSpringsLabel.setText(tempText)
 
     def setHorizontal(self):
@@ -320,7 +338,8 @@ class MainGUI(QtGui.QMainWindow):
     def resonanceForcing(self):
         """Set the correct forcing function for resonance or anti-resonance"""
         self.forcingFunctionText = "sin(2*t)"
-        self.forcingFunctionLabel.setText('Forcing Function: '+self.forcingFunctionText)
+        self.forcingFunctionLabel.setText(
+            'Forcing Function: ' + self.forcingFunctionText)
         self.forcingField.setEnabled(False)
 
     def reEnableForcingMenu(self):
@@ -332,8 +351,8 @@ class MainGUI(QtGui.QMainWindow):
         """Deletes the last spring entered. If it's a series spring, deletes
         all springs on that series."""
         if len(self.springArgs) == 0:
-            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'There are '\
-                              'no springs to delete.', parent=self)
+            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'There are '
+                                    'no springs to delete.', parent=self)
             box.exec_()
             return
         temp = self.springArgs.pop()
@@ -344,14 +363,14 @@ class MainGUI(QtGui.QMainWindow):
             while temp[0:2] != 'SS':
                 temp = self.springArgs.pop()
         for spring in self.springArgs:
-            tempText += spring+' '
+            tempText += spring + ' '
         self.curSpringsLabel.setText(tempText)
 
     def deleteAllSprings(self):
         """Deletes all springs"""
         if len(self.springArgs) == 0:
-            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'There are '\
-                              'no springs to delete.', parent=self)
+            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'There are '
+                                    'no springs to delete.', parent=self)
             box.exec_()
             return
         self.springArgs = []
@@ -366,39 +385,39 @@ class MainGUI(QtGui.QMainWindow):
         try:
 
             if len(self.springArgs) == 0 and self.doParams.isChecked():
-                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'You must '\
-                                  'enter at least one spring stiffness.', parent=self)
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'You must '
+                                        'enter at least one spring stiffness.', parent=self)
                 box.exec_()
                 return
             elif abs(float(self.initPosEdit.text())) > 5 and self.doParams.isChecked():
-                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Initial position must '\
-                                  'be in the range of -5 to 5 meters.', parent=self)
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Initial position must '
+                                        'be in the range of -5 to 5 meters.', parent=self)
                 box.exec_()
                 return
             elif float(self.speedPercentEdit.text()) < 5 or float(self.speedPercentEdit.text()) > 150:
-                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Speed percentage '\
-                                  'must be greater than 5% and less or equal to 150%', parent=self)
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Speed percentage '
+                                        'must be greater than 5% and less or equal to 150%', parent=self)
                 box.exec_()
                 return
             elif float(self.massEdit.text()) <= 0:
-                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Mass must be '\
-                                  'greater than zero', parent=self)
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Mass must be '
+                                        'greater than zero', parent=self)
                 box.exec_()
                 return
             elif float(self.dampingEdit.text()) < 0:
-                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Damping must be '\
-                                  'greater than or equal to zero', parent=self)
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Damping must be '
+                                        'greater than or equal to zero', parent=self)
                 box.exec_()
                 return
             elif int(self.lengthEdit.text()) <= 0 or int(self.lengthEdit.text()) > 20:
-                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Length of  '\
-                                  'simulation must be greater than 0s but no more than 20s', parent=self)
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Length of  '
+                                        'simulation must be greater than 0s but no more than 20s', parent=self)
                 box.exec_()
                 return
         except:
-            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Your parameters '\
-                              'are incorrect, check them. Most likely you entered something '\
-                              'other than a number. Also, length of simulation has to be a whole number.', parent=self)
+            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Your parameters '
+                                    'are incorrect, check them. Most likely you entered something '
+                                    'other than a number. Also, length of simulation has to be a whole number.', parent=self)
             box.exec_()
             return
         # END ERROR CHECKING ############
@@ -407,11 +426,11 @@ class MainGUI(QtGui.QMainWindow):
         # in spring.py (the simulation file)
         directory = os.path.dirname(os.path.realpath(__file__))
         springArg = self.springArgs
-        massArg = 'M'+self.massEdit.text()
-        dampingArg = 'DAM'+self.dampingEdit.text()
-        initPosArg = 'IP'+self.initPosEdit.text()
-        speedArg = 'PS'+self.speedPercentEdit.text()
-        funcNumArg = 'FN'+str(self.forcingFunctionText)
+        massArg = 'M' + self.massEdit.text()
+        dampingArg = 'DAM' + self.dampingEdit.text()
+        initPosArg = 'IP' + self.initPosEdit.text()
+        speedArg = 'PS' + self.speedPercentEdit.text()
+        funcNumArg = 'FN' + str(self.forcingFunctionText)
         directionArg = "DIR" + self.direction
         lengthArg = 'LEN' + self.lengthEdit.text()
         if self.resonanceCheck.isChecked() or self.antiResonanceCheck.isChecked():
@@ -419,16 +438,16 @@ class MainGUI(QtGui.QMainWindow):
             massArg = 'M2'
             dampingArg = 'D0'
             springArg = ['SP8']
-            initPosArg = 'IP-3' # For resonance, init position is -3
+            initPosArg = 'IP-3'  # For resonance, init position is -3
         if self.antiResonanceCheck.isChecked():
-            initPosArg = 'IP3' # for anti-resonance, init position is 3
-        args = [sys.executable, directory+os.sep+'spring.py']+springArg+[massArg, \
-                dampingArg, initPosArg, speedArg, funcNumArg, directionArg, lengthArg]
-        Popen(args, cwd = directory) # Open the simulation window
+            initPosArg = 'IP3'  # for anti-resonance, init position is 3
+        args = [sys.executable, directory + os.sep + 'spring.py'] + springArg + [massArg,
+                                                                                 dampingArg, initPosArg, speedArg, funcNumArg, directionArg, lengthArg]
+        Popen(args, cwd=directory)  # Open the simulation window
 
     def getForcingVal(self, t):
         """ Gets the value of the forcing function at the given time"""
-        return eval (self.forcingFunctionText);
+        return eval(self.forcingFunctionText)
 
     def plotData(self):
         """Unfortunately, right now we need to calculate the approximation when
@@ -440,42 +459,42 @@ class MainGUI(QtGui.QMainWindow):
 
         try:
             if float(self.massEdit.text()) <= 0:
-                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Mass must be '\
-                                  'greater than zero', parent=self)
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Mass must be '
+                                        'greater than zero', parent=self)
                 box.exec_()
                 return
             elif float(self.dampingEdit.text()) < 0:
-                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Damping must be '\
-                                  'greater than or equal to zero', parent=self)
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Damping must be '
+                                        'greater than or equal to zero', parent=self)
                 box.exec_()
                 return
             elif len(self.springArgs) == 0 and self.doParams.isChecked():
-                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'You must '\
-                                  'enter at least one spring stiffness.', parent=self)
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'You must '
+                                        'enter at least one spring stiffness.', parent=self)
                 box.exec_()
                 return
             elif float(self.initPosEdit.text()) < -5 or float(self.initPosEdit.text()) > 5:
-                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Initial position '\
-                                  'must be between -5 and 5 meters', parent=self)
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Initial position '
+                                        'must be between -5 and 5 meters', parent=self)
                 box.exec_()
                 return
             elif int(self.lengthEdit.text()) <= 0 or int(self.lengthEdit.text()) > 20:
-                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Length of  '\
-                                  'simulation must be greater than 0s but no more than 20s', parent=self)
+                box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Length of  '
+                                        'simulation must be greater than 0s but no more than 20s', parent=self)
                 box.exec_()
                 return
         except:
-            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Your parameters '\
-                              'are incorrect, check them. Most likely you entered something '\
-                              'other than a number. Also, length of simulation has to be a whole number.', parent=self)
+            box = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 'Error', 'Your parameters '
+                                    'are incorrect, check them. Most likely you entered something '
+                                    'other than a number. Also, length of simulation has to be a whole number.', parent=self)
             box.exec_()
             return
-        y_t = [] # position values
+        y_t = []  # position values
         y_t.append(float(self.initPosEdit.text()))
-        t_t = [] # time values
+        t_t = []  # time values
         t_t.append(0)
-        v = [] # velocity values
-        v.append(0) # v = dy/dx
+        v = []  # velocity values
+        v.append(0)  # v = dy/dx
         # gotta be floats for the math
         b = float(self.dampingEdit.text())
         m = float(self.massEdit.text())
@@ -489,22 +508,25 @@ class MainGUI(QtGui.QMainWindow):
         if self.antiResonanceCheck.isChecked():
             y_t[0] = 3
         inc = 0.0005
-        iterations = int(int(self.lengthEdit.text())/inc)
-        #print iterations
+        iterations = int(int(self.lengthEdit.text()) / inc)
+        # print iterations
         for i in range(1, iterations):
-            forcingFunction = self.getForcingVal(t_t[i-1]) if self.direction == 'X' else (self.getForcingVal(t_t[i-1]) - 9.81*m)
+            forcingFunction = self.getForcingVal(
+                t_t[i - 1]) if self.direction == 'X' else (self.getForcingVal(t_t[i - 1]) - 9.81 * m)
 
             # Midpoint Method
             # More comments for this method are in spring.py as it is used
             # there too.
-            k1y = v[i-1]
-            k1v = (forcingFunction - b*v[i-1] - k*y_t[i-1])/m
-            forcingFunctionInc = self.getForcingVal(t_t[i-1]+0.5*inc) if self.direction == 'X' else (self.getForcingVal(t_t[i-1]+0.5*inc) - 9.81*m)
-            k2y = v[i-1]+0.5*k1v*inc
-            k2v = (forcingFunctionInc - b*(v[i-1]+0.5*k1v*inc) - k*(y_t[i-1]+0.5*k1y*inc))/m
-            y_t.append(y_t[i-1] + k2y*inc)
-            v.append(v[i-1] + k2v*inc)
-            t_t.append(t_t[i-1]+inc)
+            k1y = v[i - 1]
+            k1v = (forcingFunction - b * v[i - 1] - k * y_t[i - 1]) / m
+            forcingFunctionInc = self.getForcingVal(
+                t_t[i - 1] + 0.5 * inc) if self.direction == 'X' else (self.getForcingVal(t_t[i - 1] + 0.5 * inc) - 9.81 * m)
+            k2y = v[i - 1] + 0.5 * k1v * inc
+            k2v = (forcingFunctionInc - b *
+                   (v[i - 1] + 0.5 * k1v * inc) - k * (y_t[i - 1] + 0.5 * k1y * inc)) / m
+            y_t.append(y_t[i - 1] + k2y * inc)
+            v.append(v[i - 1] + k2v * inc)
+            t_t.append(t_t[i - 1] + inc)
             """
             # Euler method
             t_t.append(t_t[i-1]+inc)
@@ -520,14 +542,14 @@ class MainGUI(QtGui.QMainWindow):
         else:
             depVar = 'y'
         ODEstring = ''
-        ODEstring += str(m)+depVar+"'' + "
+        ODEstring += str(m) + depVar + "'' + "
         if b != 0:
-            ODEstring += str(b)+depVar+"' + "
-        ODEstring += str(k)+depVar+" = "
+            ODEstring += str(b) + depVar + "' + "
+        ODEstring += str(k) + depVar + " = "
         ODEstring += self.forcingFunctionText
-        ax.set_title("Position vs. Time for "+ODEstring)
+        ax.set_title("Position vs. Time for " + ODEstring)
         ax.set_xlabel("Time (s)")
-        ax.set_ylabel(self.direction+" Position (m)")
+        ax.set_ylabel(self.direction + " Position (m)")
         self.canvas.draw()
 
     def getStiffness(self):
@@ -541,9 +563,10 @@ class MainGUI(QtGui.QMainWindow):
                 num = int(self.springArgs[i][2:])
                 seriesK = 0
                 for j in range(num):
-                    seriesK += 1.0/float(self.springArgs[i+1+j])
-                stiffness += 1.0/seriesK
+                    seriesK += 1.0 / float(self.springArgs[i + 1 + j])
+                stiffness += 1.0 / seriesK
         return stiffness
+
 
 if __name__ == '__main__':
     """Launch the GUI"""
